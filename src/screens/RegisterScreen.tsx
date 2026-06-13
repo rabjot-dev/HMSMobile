@@ -104,6 +104,7 @@ export default function Register() {
         email,
         phone,
         password,
+        confirmPassword,
       });
 
       Alert.alert("Success", "Account created successfully", [
@@ -112,9 +113,28 @@ export default function Register() {
           onPress: () => navigation.navigate("Login"),
         },
       ]);
-    } catch (error: any) {
-      Alert.alert("Registration Failed", error?.message || "Please try again");
-    } finally {
+    } 
+      catch (error: any) {
+
+  console.log(
+    "REGISTER ERROR",
+    error
+  );
+
+  console.log(
+    "REGISTER RESPONSE",
+    error?.response?.data
+  );
+
+  Alert.alert(
+    "Registration Failed",
+    JSON.stringify(
+      error?.response?.data,
+      null,
+      2
+    )
+  );
+} finally {
       setLoading(false);
     }
   };
