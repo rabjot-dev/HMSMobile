@@ -5,10 +5,12 @@ import {
   Text,
   Alert,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+import {
+  SafeAreaView,
+} from "react-native-safe-area-context";
 
 import {
   useNavigation,
@@ -114,16 +116,31 @@ export default function Login() {
             password
           );
 
-        const token =
-          response.data?.data?.accessToken;
+       const loginResponse =
+  response.data.data;
 
-        await saveToken(
-          token
-        );
+await saveToken(
+  loginResponse.accessToken
+);
 
-        navigation.replace(
-          "PatientTabs"
-        );
+if (
+  loginResponse.user
+    ?.isFirstLogin
+) {
+
+  navigation.replace(
+    "CreatePassword",
+    {
+      loginId: email,
+    }
+  );
+
+  return;
+}
+
+navigation.replace(
+  "PatientTabs"
+);
 
       } catch (
         error: any

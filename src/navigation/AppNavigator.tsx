@@ -12,8 +12,14 @@ import EditProfile from "../screens/EditProfileScreen";
 import {
   RootStackParamList,
 } from "../types/navigation";
+import CreatePasswordScreen
+from "../screens/CreatePasswordScreen";
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+type AppNavigatorParamList = RootStackParamList & {
+  CreatePassword: undefined;
+};
+
+const Stack = createNativeStackNavigator<AppNavigatorParamList>();
 
 export default function AppNavigator() {
   return (
@@ -41,6 +47,7 @@ export default function AppNavigator() {
         name="PatientTabs"
         component={PatientTabs}
       />
+      
 
       <Stack.Screen
         name="BookAppointment"
@@ -59,6 +66,10 @@ export default function AppNavigator() {
       <Stack.Screen
   name="EditProfile"
   component={EditProfile}
+/>
+<Stack.Screen
+  name="CreatePassword"
+  component={ CreatePasswordScreen}
 />
     </Stack.Navigator>
   );

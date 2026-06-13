@@ -18,3 +18,13 @@ async (
     }
   );
 };
+export const createPassword =
+(
+  data: any
+) => {
+
+  return axios.post(
+    `${API_BASE_URL}/auth/create-password`,
+    data
+  );
+};

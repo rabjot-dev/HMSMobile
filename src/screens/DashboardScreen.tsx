@@ -5,11 +5,9 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-RefreshControl,
-} from "react-native";
 import {
   useEffect,
   useState,
@@ -109,6 +107,14 @@ Loading Dashboard...
 
 }
 
+const hour = new Date().getHours();
+let greeting = "Good Evening 🌙";
+if (hour < 12) {
+  greeting = "Good Morning 👋";
+} else if (hour < 18) {
+  greeting = "Good Afternoon ☀️";
+}
+
  return (
 
 <SafeAreaView
@@ -132,13 +138,7 @@ onRefresh
 
 
 <Text style={styles.greeting}>
- {
-new Date().getHours() < 12
-? "Good Morning 👋"
-: new Date().getHours() < 18
-? "Good Afternoon ☀️"
-: "Good Evening 🌙"
-}
+ {greeting}
 </Text>
 
 <Text style={styles.name}>

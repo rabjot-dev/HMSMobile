@@ -3,18 +3,18 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
-  SafeAreaView,
   StyleSheet,
+  TextInput,
+RefreshControl,
 } from "react-native";
+import {
+  SafeAreaView,
+} from "react-native-safe-area-context";
 
 import React,
 {
   useState,
 } from "react";
-import {
-TextInput,
-RefreshControl,
-} from "react-native";
 import {
   useFocusEffect,
   useNavigation,
@@ -92,34 +92,7 @@ useState("ALL");
 
       }
     };
-    const filteredAppointments =
-appointments.filter(
-appointment => {
 
-const doctorName =
-appointment
-?.doctorEmployeeId
-?.name
-?.toLowerCase() || "";
-
-const matchesSearch =
-doctorName.includes(
-search.toLowerCase()
-);
-
-const matchesFilter =
-selectedFilter === "ALL"
-? true
-: appointment.status ===
-selectedFilter;
-
-return (
-matchesSearch &&
-matchesFilter
-);
-
-}
-);
 if (loading) {
 
 return (

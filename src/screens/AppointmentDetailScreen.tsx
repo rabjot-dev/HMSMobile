@@ -3,10 +3,10 @@ import {
   Text,
   TouchableOpacity,
   Alert,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   useEffect,
@@ -14,10 +14,7 @@ import {
 } from "react";
 
 import {
-  useRoute,
-} from "@react-navigation/native";
-import {
-  useNavigation,
+  useRoute, useNavigation,
 } from "@react-navigation/native";
 
 import {
@@ -292,9 +289,9 @@ gap:8,
 appointment
 ?.symptoms
 ?.map(
-(symptom:string,index:number)=>(
+(symptom:string)=>(
 <View
-key={index}
+key={symptom}
 style={{
 backgroundColor:"#DBEAFE",
 paddingHorizontal:12,
