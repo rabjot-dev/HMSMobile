@@ -30,17 +30,29 @@ export default function Dashboard() {
     setRefreshing(false);
   };
   const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    loadDashboard();
-  }, []);
+   useEffect(() => {
+    console.log(
+      "UPDATED DASHBOARD",
+      dashboard
+    );
+  }, [dashboard]);
 
   const loadDashboard = async () => {
     try {
       setLoading(true);
 
-      const response = await getDashboard();
+const response = await getDashboard();
 
+console.log(
+  "API DATA",
+  response.data.data
+)
       setDashboard(response.data.data);
+      
+      console.log(
+  "DASHBOARD STATE",
+  dashboard
+);
     } catch (error) {
       console.log(error);
     } finally {
@@ -182,7 +194,7 @@ export default function Dashboard() {
                       fontSize: 16,
                     }}
                   >
-                    Dr. {dashboard?.upcomingAppointment?.doctorEmployeeId?.name}
+                    Dr. {dashboard?.upcomingAppointment?.doctorEmployeeId?.name || "Not Assigned"}
                   </Text>
 
                   <Text

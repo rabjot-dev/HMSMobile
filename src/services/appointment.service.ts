@@ -1,96 +1,51 @@
-import axios from "axios";
+import api from "./api.service";
 
-import { API_BASE_URL } from "../constants/api";
+export const getAppointments =
+  () =>
+    api.get(
+      "/appointments"
+    );
 
-import { getToken } from "../storage/token.storage";
+export const getAppointmentById =
+  (id: string) =>
+    api.get(
+      `/appointments/${id}`
+    );
 
-export const getAppointments = async () => {
-  const token = await getToken();
+export const cancelAppointment =
+  (id: string) =>
+    api.delete(
+      `/appointments/${id}`
+    );
 
-  return axios.get(
-    `${API_BASE_URL}/appointments`,
+export const getAvailableSlots =
+  (
+    doctorId: string,
+    appointmentDate: string
+  ) =>
+    api.get(
+      "/appointments/available-slots",
+      {
+        params: {
+          doctorId,
+          appointmentDate,
+        },
+      }
+    );
 
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
-};
-export const getAppointmentById = async (id: string) => {
-  const token = await getToken();
+export const bookAppointment =
+  (data: any) =>
+    api.post(
+      "/appointments/patient/book",
+      data
+    );
 
-  return axios.get(
-    `${API_BASE_URL}/appointments/${id}`,
-
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
-};
-export const cancelAppointment = async (id: string) => {
-  const token = await getToken();
-
-  return axios.delete(
-    `${API_BASE_URL}/appointments/${id}`,
-
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
-};
-export const getAvailableSlots = async (
-  doctorId: string,
-  appointmentDate: string,
-) => {
-  const token = await getToken();
-
-  return axios.get(
-    `${API_BASE_URL}/appointments/available-slots`,
-
-    {
-      params: {
-        doctorId,
-        appointmentDate,
-      },
-
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
-};
-export const bookAppointment = async (data: any) => {
-  const token = await getToken();
-
-  return axios.post(
-    `${API_BASE_URL}/appointments/patient/book`,
-
-    data,
-
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
-};
-export const updateMyAppointment = async (id: string, data: any) => {
-  const token = await getToken();
-
-  return axios.put(
-    `${API_BASE_URL}/appointments/my/${id}`,
-
-    data,
-
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
-};
+export const updateMyAppointment =
+  (
+    id: string,
+    data: any
+  ) =>
+    api.put(
+      `/appointments/my/${id}`,
+      data
+    );

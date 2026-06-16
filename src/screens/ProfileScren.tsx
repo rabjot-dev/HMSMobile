@@ -3,15 +3,14 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   StyleSheet,
 } from "react-native";
-
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useState } from "react";
 
 import { useNavigation } from "@react-navigation/native";
 
-import { removeToken } from "../../src/storage/token.storage";
+import { removeTokens } from "../../src/storage/token.storage";
 
 import { getProfile } from "../../src/services/patient.service";
 
@@ -42,7 +41,7 @@ export default function Profile() {
   };
 
   const logout = async () => {
-    await removeToken();
+    await removeTokens();
 
     navigation.reset({
       index: 0,
