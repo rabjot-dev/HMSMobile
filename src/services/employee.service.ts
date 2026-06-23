@@ -1,7 +1,5 @@
-import axios from "axios";
+import { apiClient } from "./api-client";
 
-import { API_BASE_URL } from "../constants/api";
-import { getToken } from "../storage/token.storage";
 export const getDoctors = async () => {
-  return axios.get(`${API_BASE_URL}/employees/doctors`);
+  return apiClient.get("/employees/doctors");
 };

@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useRoute, useNavigation } from "@react-navigation/native";
 
@@ -31,22 +31,22 @@ export default function AppointmentDetails() {
 
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadAppointment();
-  }, []);
-  const loadAppointment = async () => {
+  const loadAppointment = useCallback(async () => {
     try {
       setLoading(true);
 
       const response = await getAppointmentById(id as string);
 
       setAppointment(response.data.data);
-    } catch (error) {
-      console.log(error);
+    } catch {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    loadAppointment();
+  }, [loadAppointment]);
   const handleCancel = async () => {
     try {
       await cancelAppointment(id as string);
@@ -62,10 +62,18 @@ export default function AppointmentDetails() {
     }
   };
 
-  if (!appointment) {
+  if (loading) {
     return (
       <SafeAreaView style={styles.container}>
         <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (!appointment) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Appointment not found</Text>
       </SafeAreaView>
     );
   }

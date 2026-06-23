@@ -7,14 +7,11 @@ import BookAppointment from "../screens/BookAppointmentScreen";
 import AppointmentDetail from "../screens/AppointmentDetailScreen";
 import EditAppointment from "../screens/EditAppointmentScreen";
 import EditProfile from "../screens/EditProfileScreen";
+import PrescriptionDetail from "../screens/PrescriptionDetailScreen";
 import { RootStackParamList } from "../types/navigation";
 import CreatePasswordScreen from "../screens/CreatePasswordScreen";
-
-type AppNavigatorParamList = RootStackParamList & {
-  CreatePassword: undefined;
-};
-
-const Stack = createNativeStackNavigator<AppNavigatorParamList>();
+import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   return (
@@ -37,7 +34,9 @@ export default function AppNavigator() {
 
       <Stack.Screen name="EditAppointment" component={EditAppointment} />
       <Stack.Screen name="EditProfile" component={EditProfile} />
+      <Stack.Screen name="PrescriptionDetail" component={PrescriptionDetail} />
       <Stack.Screen name="CreatePassword" component={CreatePasswordScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     </Stack.Navigator>
   );
 }

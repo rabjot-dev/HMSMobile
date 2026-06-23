@@ -14,7 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 
 import { login } from "../services/auth.service";
 
-import { saveToken } from "../storage/token.storage";
+import { saveTokens } from "../storage/token.storage";
 import { isEmail } from "../utils/validators";
 import AppInput from "../components/inputs/AppInput";
 import PrimaryButton from "../components/buttons/PrimaryButton";
@@ -63,7 +63,13 @@ export default function Login() {
 
       const loginResponse = response.data.data;
 
-      await saveToken(loginResponse.accessToken);
+      if (!loginResponse.user?.roles?.includes("PATIENT")) {
+        Alert.alert("Access denied", "Mobile app is only for patients");
+
+        return;
+      }
+
+      await saveTokens(loginResponse.accessToken, loginResponse.refreshToken);
 
       if (loginResponse.user?.isFirstLogin) {
         navigation.replace("CreatePassword", {
@@ -102,7 +108,7 @@ export default function Login() {
         </View>
 
         <GlassCard>
-          <Text style={styles.heading}>Welcome Back 👋</Text>
+          <Text style={styles.heading}>Welcome Back </Text>
 
           <Text style={styles.subHeading}>
             Sign in to continue your healthcare journey.
@@ -143,7 +149,7 @@ export default function Login() {
             error={errors.password}
           />
 
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
             <Text style={styles.forgotPassword}>Forgot Password?</Text>
           </TouchableOpacity>
 

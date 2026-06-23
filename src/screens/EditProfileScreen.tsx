@@ -1,10 +1,10 @@
 import {
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   Alert,
   View,
+  StyleSheet,
 } from "react-native";
 
 import { useEffect, useState } from "react";
@@ -13,11 +13,11 @@ import {
   isPincode,
   onlyLetters,
   futureDate,
+  maxLength,
 } from "../../src/utils/validators";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation } from "@react-navigation/native";
 import { getProfile, updateProfile } from "../../src/services/patient.service";
-import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import GlassCard from "../../src/components/cards/GlassCard";
@@ -134,26 +134,34 @@ export default function EditProfile() {
 
     if (!address.trim()) {
       newErrors.address = "Address is required";
-    } else if (address.length < 10) {
+    } else if (address.trim().length < 10) {
       newErrors.address = "Minimum 10 characters required";
+    } else if (!maxLength(address.trim(), 200)) {
+      newErrors.address = "Maximum 200 characters allowed";
     }
 
     if (!city.trim()) {
       newErrors.city = "City is required";
     } else if (!onlyLetters(city)) {
       newErrors.city = "Only letters allowed";
+    } else if (!maxLength(city.trim(), 50)) {
+      newErrors.city = "Maximum 50 characters allowed";
     }
 
     if (!state.trim()) {
       newErrors.state = "State is required";
     } else if (!onlyLetters(state)) {
       newErrors.state = "Only letters allowed";
+    } else if (!maxLength(state.trim(), 50)) {
+      newErrors.state = "Maximum 50 characters allowed";
     }
 
     if (!country.trim()) {
       newErrors.country = "Country is required";
     } else if (!onlyLetters(country)) {
       newErrors.country = "Only letters allowed";
+    } else if (!maxLength(country.trim(), 50)) {
+      newErrors.country = "Maximum 50 characters allowed";
     }
 
     if (!pincode.trim()) {
@@ -166,6 +174,8 @@ export default function EditProfile() {
       newErrors.emergencyContactName = "Contact name is required";
     } else if (!onlyLetters(emergencyContactName)) {
       newErrors.emergencyContactName = "Only letters allowed";
+    } else if (!maxLength(emergencyContactName.trim(), 50)) {
+      newErrors.emergencyContactName = "Maximum 50 characters allowed";
     }
 
     if (!emergencyContactPhone.trim()) {
@@ -176,6 +186,10 @@ export default function EditProfile() {
 
     if (!relationship.trim()) {
       newErrors.relationship = "Relationship is required";
+    } else if (!onlyLetters(relationship)) {
+      newErrors.relationship = "Only letters allowed";
+    } else if (!maxLength(relationship.trim(), 50)) {
+      newErrors.relationship = "Maximum 50 characters allowed";
     }
 
     setErrors(newErrors);
@@ -193,14 +207,14 @@ export default function EditProfile() {
         gender,
         bloodGroup,
         maritalStatus,
-        address,
-        city,
-        state,
-        country,
+        address: address.trim(),
+        city: city.trim(),
+        state: state.trim(),
+        country: country.trim(),
         pincode,
-        emergencyContactName,
+        emergencyContactName: emergencyContactName.trim(),
         emergencyContactPhone,
-        relationship,
+        relationship: relationship.trim(),
         allergies: allergies ? allergies.split(",").map((s) => s.trim()) : [],
         chronicDiseases: chronicDiseases
           ? chronicDiseases.split(",").map((s) => s.trim())
@@ -215,7 +229,7 @@ export default function EditProfile() {
 
       Alert.alert("Profile updated successfully");
       navigation.goBack();
-    } catch (e) {
+    } catch {
       Alert.alert("Failed to update profile");
     } finally {
       setLoading(false);
@@ -337,6 +351,7 @@ export default function EditProfile() {
           <AppInput
             label="Address"
             value={address}
+            maxLength={200}
             onChangeText={(value) => {
               setAddress(value);
 
@@ -351,8 +366,9 @@ export default function EditProfile() {
           <AppInput
             label="City"
             value={city}
+            maxLength={50}
             onChangeText={(value) => {
-              setCity(value);
+              setCity(value.replace(/[^A-Za-z ]/g, ""));
 
               setErrors({
                 ...errors,
@@ -365,8 +381,9 @@ export default function EditProfile() {
           <AppInput
             label="State"
             value={state}
+            maxLength={50}
             onChangeText={(value) => {
-              setState(value);
+              setState(value.replace(/[^A-Za-z ]/g, ""));
 
               setErrors({
                 ...errors,
@@ -379,8 +396,9 @@ export default function EditProfile() {
           <AppInput
             label="Country"
             value={country}
+            maxLength={50}
             onChangeText={(value) => {
-              setCountry(value);
+              setCountry(value.replace(/[^A-Za-z ]/g, ""));
 
               setErrors({
                 ...errors,
@@ -393,9 +411,10 @@ export default function EditProfile() {
           <AppInput
             label="Pincode"
             value={pincode}
+            maxLength={6}
             keyboardType="number-pad"
             onChangeText={(value) => {
-              setPincode(value);
+              setPincode(value.replace(/\D/g, "").slice(0, 6));
 
               setErrors({
                 ...errors,
@@ -411,8 +430,9 @@ export default function EditProfile() {
           <AppInput
             label="Contact Name"
             value={emergencyContactName}
+            maxLength={50}
             onChangeText={(value) => {
-              setEmergencyContactName(value);
+              setEmergencyContactName(value.replace(/[^A-Za-z ]/g, ""));
 
               setErrors({
                 ...errors,
@@ -425,9 +445,10 @@ export default function EditProfile() {
           <AppInput
             label="Phone Number"
             value={emergencyContactPhone}
+            maxLength={10}
             keyboardType="phone-pad"
             onChangeText={(value) => {
-              setEmergencyContactPhone(value);
+              setEmergencyContactPhone(value.replace(/\D/g, "").slice(0, 10));
 
               setErrors({
                 ...errors,
@@ -440,8 +461,9 @@ export default function EditProfile() {
           <AppInput
             label="Relationship"
             value={relationship}
+            maxLength={50}
             onChangeText={(value) => {
-              setRelationship(value);
+              setRelationship(value.replace(/[^A-Za-z ]/g, ""));
 
               setErrors({
                 ...errors,

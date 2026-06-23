@@ -34,6 +34,20 @@ export default function Appointments() {
 
   const [selectedFilter, setSelectedFilter] = useState("ALL");
 
+  const visibleAppointments = appointments.filter((appointment) => {
+    const matchesStatus =
+      selectedFilter === "ALL" || appointment.status === selectedFilter;
+
+    const doctorName =
+      appointment.doctorEmployeeId?.name?.toLowerCase() || "";
+
+    const matchesSearch =
+      !search.trim() ||
+      doctorName.includes(search.trim().toLowerCase());
+
+    return matchesStatus && matchesSearch;
+  });
+
   useFocusEffect(
     React.useCallback(() => {
       loadAppointments();
@@ -47,6 +61,7 @@ export default function Appointments() {
       const response = await getAppointments();
 
       setAppointments(response.data.data);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -146,7 +161,7 @@ export default function Appointments() {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        data={appointments}
+        data={visibleAppointments}
         keyExtractor={(item) => item._id}
         contentContainerStyle={{
           padding: 20,

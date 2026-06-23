@@ -4,7 +4,6 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Alert,
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -41,8 +40,7 @@ export default function Dashboard() {
       const response = await getDashboard();
 
       setDashboard(response.data.data);
-    } catch (error) {
-      console.log(error);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -64,11 +62,11 @@ export default function Dashboard() {
   }
 
   const hour = new Date().getHours();
-  let greeting = "Good Evening 🌙";
+  let greeting = "Good Evening";
   if (hour < 12) {
-    greeting = "Good Morning 👋";
+    greeting = "Good Morning";
   } else if (hour < 18) {
-    greeting = "Good Afternoon ☀️";
+    greeting = "Good Afternoon";
   }
 
   return (
@@ -113,7 +111,7 @@ export default function Dashboard() {
 
           <QuickActionCard
             title="Records"
-            onPress={() => Alert.alert("Coming Soon")}
+            onPress={() => navigation.navigate("Records")}
           />
         </View>
 

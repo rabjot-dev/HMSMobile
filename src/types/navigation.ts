@@ -11,11 +11,21 @@ export type RootStackParamList = {
 
   EditProfile: undefined;
 
+  CreatePassword: {
+    loginId: string;
+  };
+
+  ForgotPassword: undefined;
+
   AppointmentDetail: {
     id: string;
   };
 
   EditAppointment: {
+    id: string;
+  };
+
+  PrescriptionDetail: {
     id: string;
   };
 };

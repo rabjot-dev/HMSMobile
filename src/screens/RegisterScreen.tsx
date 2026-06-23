@@ -1,12 +1,14 @@
 import { useState } from "react";
 import {
   Text,
+  View,
   Alert,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Picker } from "@react-native-picker/picker";
 
 import { useNavigation } from "@react-navigation/native";
 
@@ -14,6 +16,7 @@ import { registerPatient } from "../services/patient.service";
 import {
   isEmail,
   isPhone,
+  maxLength,
   onlyLetters,
   strongPassword,
 } from "../utils/validators";
@@ -36,9 +39,22 @@ export default function Register() {
 
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [securityQuestion, setSecurityQuestion] = useState("");
+
+  const [securityAnswer, setSecurityAnswer] = useState("");
+
   const [loading, setLoading] = useState(false);
 
   const [errors, setErrors] = useState<any>({});
+
+  const securityQuestions = [
+    "What is your mother's maiden name?",
+    "What was the name of your first school?",
+    "What is your favorite movie?",
+    "What was your childhood nickname?",
+    "What city were you born in?",
+    "What is your favorite food?",
+  ];
 
   const validateForm = () => {
     const newErrors: any = {};
@@ -47,16 +63,20 @@ export default function Register() {
       newErrors.firstName = "First name is required";
     } else if (!onlyLetters(firstName)) {
       newErrors.firstName = "Only letters allowed";
-    } else if (firstName.length < 2) {
+    } else if (firstName.trim().length < 2) {
       newErrors.firstName = "Minimum 2 characters required";
+    } else if (!maxLength(firstName.trim(), 50)) {
+      newErrors.firstName = "Maximum 50 characters allowed";
     }
 
     if (!lastName.trim()) {
       newErrors.lastName = "Last name is required";
     } else if (!onlyLetters(lastName)) {
       newErrors.lastName = "Only letters allowed";
-    } else if (lastName.length < 2) {
+    } else if (lastName.trim().length < 2) {
       newErrors.lastName = "Minimum 2 characters required";
+    } else if (!maxLength(lastName.trim(), 50)) {
+      newErrors.lastName = "Maximum 50 characters allowed";
     }
 
     if (!email.trim()) {
@@ -73,6 +93,8 @@ export default function Register() {
 
     if (!password.trim()) {
       newErrors.password = "Password is required";
+    } else if (password.length > 20) {
+      newErrors.password = "Password must not exceed 20 characters";
     } else if (!strongPassword(password)) {
       newErrors.password =
         "Must contain uppercase, lowercase, number & special character";
@@ -82,6 +104,19 @@ export default function Register() {
       newErrors.confirmPassword = "Confirm password is required";
     } else if (password !== confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    if (!securityQuestion) {
+      newErrors.securityQuestion = "Please select a security question";
+    }
+
+    if (!securityAnswer.trim()) {
+      newErrors.securityAnswer = "Security answer is required";
+    } else if (securityAnswer.trim().length < 2) {
+      newErrors.securityAnswer =
+        "Security answer must contain at least 2 characters";
+    } else if (securityAnswer.trim().length > 100) {
+      newErrors.securityAnswer = "Security answer must not exceed 100 characters";
     }
 
     setErrors(newErrors);
@@ -98,12 +133,14 @@ export default function Register() {
 
     try {
       await registerPatient({
-        firstName,
-        lastName,
-        email,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
         phone,
         password,
         confirmPassword,
+        securityQuestion,
+        securityAnswer: securityAnswer.trim(),
       });
 
       Alert.alert("Success", "Account created successfully", [
@@ -112,28 +149,12 @@ export default function Register() {
           onPress: () => navigation.navigate("Login"),
         },
       ]);
-    } 
-      catch (error: any) {
-
-  console.log(
-    "REGISTER ERROR",
-    error
-  );
-
-  console.log(
-    "REGISTER RESPONSE",
-    error?.response?.data
-  );
-
-  Alert.alert(
-    "Registration Failed",
-    JSON.stringify(
-      error?.response?.data,
-      null,
-      2
-    )
-  );
-} finally {
+    } catch (error: any) {
+      Alert.alert(
+        "Registration Failed",
+        error?.response?.data?.message || "Unable to create account",
+      );
+    } finally {
       setLoading(false);
     }
   };
@@ -153,8 +174,9 @@ export default function Register() {
           <AppInput
             label="First Name"
             value={firstName}
+            maxLength={50}
             onChangeText={(value) => {
-              setFirstName(value);
+              setFirstName(value.replace(/[^A-Za-z ]/g, ""));
 
               setErrors({
                 ...errors,
@@ -167,8 +189,9 @@ export default function Register() {
           <AppInput
             label="Last Name"
             value={lastName}
+            maxLength={50}
             onChangeText={(value) => {
-              setLastName(value);
+              setLastName(value.replace(/[^A-Za-z ]/g, ""));
 
               setErrors({
                 ...errors,
@@ -184,7 +207,7 @@ export default function Register() {
             keyboardType="email-address"
             autoCapitalize="none"
             onChangeText={(value) => {
-              setEmail(value);
+              setEmail(value.trim());
 
               setErrors({
                 ...errors,
@@ -196,9 +219,10 @@ export default function Register() {
           <AppInput
             label="Phone"
             value={phone}
+            maxLength={10}
             keyboardType="phone-pad"
             onChangeText={(value) => {
-              setPhone(value);
+              setPhone(value.replace(/\D/g, "").slice(0, 10));
 
               setErrors({
                 ...errors,
@@ -211,6 +235,7 @@ export default function Register() {
             label="Password"
             secureTextEntry
             value={password}
+            maxLength={20}
             onChangeText={(value) => {
               setPassword(value);
 
@@ -226,6 +251,7 @@ export default function Register() {
             label="Confirm Password"
             secureTextEntry
             value={confirmPassword}
+            maxLength={20}
             onChangeText={(value) => {
               setConfirmPassword(value);
 
@@ -235,6 +261,51 @@ export default function Register() {
               });
             }}
             error={errors.confirmPassword}
+          />
+
+          <Text style={styles.inputLabel}>Security Question</Text>
+
+          <View style={styles.pickerWrapper}>
+            <Picker
+              selectedValue={securityQuestion}
+              onValueChange={(value) => {
+                setSecurityQuestion(value);
+
+                if (errors.securityQuestion) {
+                  setErrors({
+                    ...errors,
+                    securityQuestion: "",
+                  });
+                }
+              }}
+            >
+              <Picker.Item label="Select Security Question" value="" />
+
+              {securityQuestions.map((question) => (
+                <Picker.Item key={question} label={question} value={question} />
+              ))}
+            </Picker>
+          </View>
+
+          {errors.securityQuestion ? (
+            <Text style={styles.errorText}>{errors.securityQuestion}</Text>
+          ) : null}
+
+          <AppInput
+            label="Security Answer"
+            value={securityAnswer}
+            maxLength={100}
+            onChangeText={(value) => {
+              setSecurityAnswer(value);
+
+              if (errors.securityAnswer) {
+                setErrors({
+                  ...errors,
+                  securityAnswer: "",
+                });
+              }
+            }}
+            error={errors.securityAnswer}
           />
 
           <PrimaryButton
@@ -295,5 +366,28 @@ const styles = StyleSheet.create({
   loginLink: {
     color: "#2563EB",
     fontWeight: "700",
+  },
+
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#334155",
+    marginBottom: 8,
+  },
+
+  pickerWrapper: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#E2E8F0",
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 10,
+    overflow: "hidden",
+  },
+
+  errorText: {
+    color: "#EF4444",
+    fontSize: 12,
+    marginBottom: 12,
+    marginLeft: 4,
   },
 });

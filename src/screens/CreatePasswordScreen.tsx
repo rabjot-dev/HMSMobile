@@ -16,6 +16,7 @@ import { Picker } from "@react-native-picker/picker";
 import { useRoute, useNavigation } from "@react-navigation/native";
 
 import { createPassword } from "../services/auth.service";
+import { maxLength, minLength, strongPassword } from "../utils/validators";
 
 import AppInput from "../components/inputs/AppInput";
 import GlassCard from "../components/cards/GlassCard";
@@ -64,12 +65,6 @@ export default function CreatePasswordScreen() {
     "What was the name of your first pet?",
   ];
 
-  const validatePassword = (password: string) => {
-    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(
-      password,
-    );
-  };
-
   const validateForm = () => {
     const newErrors: any = {};
 
@@ -79,7 +74,9 @@ export default function CreatePasswordScreen() {
 
     if (!newPassword.trim()) {
       newErrors.newPassword = "New password is required";
-    } else if (!validatePassword(newPassword)) {
+    } else if (!maxLength(newPassword, 20)) {
+      newErrors.newPassword = "Password must not exceed 20 characters";
+    } else if (!strongPassword(newPassword)) {
       newErrors.newPassword =
         "Password must contain uppercase, lowercase, number and special character";
     }
@@ -96,6 +93,10 @@ export default function CreatePasswordScreen() {
 
     if (!securityAnswer.trim()) {
       newErrors.securityAnswer = "Security answer is required";
+    } else if (!minLength(securityAnswer.trim(), 2)) {
+      newErrors.securityAnswer = "Security answer must contain at least 2 characters";
+    } else if (!maxLength(securityAnswer.trim(), 100)) {
+      newErrors.securityAnswer = "Security answer must not exceed 100 characters";
     }
 
     setErrors(newErrors);
@@ -156,15 +157,9 @@ export default function CreatePasswordScreen() {
 
         securityQuestion,
 
-        securityAnswer,
+        securityAnswer: securityAnswer.trim(),
       });
-      console.log({
-        loginId,
-        temporaryPassword,
-        newPassword,
-        securityQuestion,
-        securityAnswer,
-      });
+
       Alert.alert("Success", "Password created successfully", [
         {
           text: "OK",
@@ -173,7 +168,6 @@ export default function CreatePasswordScreen() {
         },
       ]);
     } catch (error: any) {
-      console.log("CREATE PASSWORD ERROR", error?.response?.data);
 
       Alert.alert(
         "Error",
@@ -228,6 +222,7 @@ export default function CreatePasswordScreen() {
           <AppInput
             label="New Password"
             value={newPassword}
+            maxLength={20}
             onChangeText={(value) => {
               setNewPassword(value);
 
@@ -279,6 +274,7 @@ export default function CreatePasswordScreen() {
           <AppInput
             label="Confirm Password"
             value={confirmPassword}
+            maxLength={20}
             onChangeText={(value) => {
               setConfirmPassword(value);
 
@@ -332,6 +328,7 @@ export default function CreatePasswordScreen() {
           <AppInput
             label="Security Answer"
             value={securityAnswer}
+            maxLength={100}
             onChangeText={(value) => {
               setSecurityAnswer(value);
 

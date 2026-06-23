@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 
 import { useNavigation } from "@react-navigation/native";
 
-import { removeToken } from "../../src/storage/token.storage";
+import { removeTokens } from "../../src/storage/token.storage";
 
 import { getProfile } from "../../src/services/patient.service";
 
@@ -34,15 +34,14 @@ export default function Profile() {
       const response = await getProfile();
 
       setProfile(response.data.data);
-    } catch (error) {
-      console.log(error);
+    } catch {
     } finally {
       setLoading(false);
     }
   };
 
   const logout = async () => {
-    await removeToken();
+    await removeTokens();
 
     navigation.reset({
       index: 0,

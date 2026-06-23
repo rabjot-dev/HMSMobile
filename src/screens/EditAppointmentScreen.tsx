@@ -1,21 +1,22 @@
 import {
+  Alert,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
+  View,
 } from "react-native";
-import { SafeAreaView, StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import GlassCard from "../../src/components/cards/GlassCard";
 
 import PrimaryButton from "../../src/components/buttons/PrimaryButton";
 
 import TimeSlotSelector from "../../src/components/selectors/TimeSlotSelectors";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { useRoute } from "@react-navigation/native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { minLength } from "../../src/utils/validators";
 
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -45,11 +46,7 @@ export default function EditAppointment() {
 
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  useEffect(() => {
-    loadAppointment();
-  }, []);
-
-  const loadAppointment = async () => {
+  const loadAppointment = useCallback(async () => {
     try {
       const response = await getAppointmentById(id as string);
 
@@ -65,7 +62,11 @@ export default function EditAppointment() {
     } catch {
       Alert.alert("Failed to load appointment");
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    loadAppointment();
+  }, [loadAppointment]);
 
   const loadSlots = async () => {
     try {
@@ -91,11 +92,11 @@ export default function EditAppointment() {
       newErrors.appointmentTime = "Please select a slot";
     }
 
-    if (symptoms && !minLength(symptoms.trim(), 5)) {
+    if (symptoms.trim() && !minLength(symptoms.trim(), 5)) {
       newErrors.symptoms = "Symptoms must contain at least 5 characters";
     }
 
-    if (symptoms.length > 500) {
+    if (symptoms.trim().length > 500) {
       newErrors.symptoms = "Maximum 500 characters allowed";
     }
 
@@ -104,6 +105,10 @@ export default function EditAppointment() {
     return Object.keys(newErrors).length === 0;
   };
   const handleUpdate = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       await updateMyAppointment(
         id as string,
@@ -113,7 +118,7 @@ export default function EditAppointment() {
 
           appointmentTime,
 
-          symptoms: symptoms ? [symptoms] : [],
+          symptoms: symptoms.trim() ? [symptoms.trim()] : [],
         },
       );
 
@@ -263,7 +268,7 @@ export default function EditAppointment() {
           <TextInput
             value={symptoms}
             onChangeText={(value) => {
-              setSymptoms(value);
+              setSymptoms(value.slice(0, 500));
 
               setErrors({
                 ...errors,

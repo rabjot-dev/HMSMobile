@@ -50,9 +50,7 @@ export default function BookAppointment() {
       const response = await getDoctors();
 
       setDoctors(response.data.data);
-    } catch (error) {
-      console.log("DOCTOR ERROR", error);
-
+    } catch {
       Alert.alert("Failed to load doctors");
     }
   };
@@ -101,11 +99,11 @@ export default function BookAppointment() {
       newErrors.appointmentTime = "Please select time slot";
     }
 
-    if (symptoms && !minLength(symptoms.trim(), 5)) {
+    if (symptoms.trim() && !minLength(symptoms.trim(), 5)) {
       newErrors.symptoms = "Symptoms must contain at least 5 characters";
     }
 
-    if (symptoms.length > 500) {
+    if (symptoms.trim().length > 500) {
       newErrors.symptoms = "Maximum 500 characters allowed";
     }
 
@@ -127,7 +125,7 @@ export default function BookAppointment() {
 
         appointmentTime,
 
-        symptoms: symptoms.trim() ? [symptoms] : [],
+        symptoms: symptoms.trim() ? [symptoms.trim()] : [],
       });
 
       Alert.alert("Success", "Appointment request sent", [
@@ -276,21 +274,21 @@ export default function BookAppointment() {
               </Text>
 
               <TimeSlotSelector
-                {...(errors.appointmentTime && (
-                  <Text
-                    style={{
-                      color: "#EF4444",
-                      fontSize: 12,
-                      marginTop: 10,
-                    }}
-                  >
-                    {errors.appointmentTime}
-                  </Text>
-                ))}
                 slots={slots}
                 selectedSlot={appointmentTime}
                 onSelect={setAppointmentTime}
               />
+              {errors.appointmentTime && (
+                <Text
+                  style={{
+                    color: "#EF4444",
+                    fontSize: 12,
+                    marginTop: 10,
+                  }}
+                >
+                  {errors.appointmentTime}
+                </Text>
+              )}
             </>
           )}
         </GlassCard>
@@ -299,7 +297,7 @@ export default function BookAppointment() {
           <TextInput
             value={symptoms}
             onChangeText={(value) => {
-              setSymptoms(value);
+              setSymptoms(value.slice(0, 500));
 
               setErrors({
                 ...errors,

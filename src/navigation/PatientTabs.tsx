@@ -5,6 +5,7 @@ import Dashboard from "../screens/DashboardScreen";
 import Appointments from "../screens/AppointmentScreen";
 
 import Profile from "../screens/ProfileScren";
+import MedicalRecords from "../screens/MedicalRecordsScreen";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -82,6 +83,10 @@ export default function PatientTabs() {
             iconName = focused ? "calendar" : "calendar-outline";
           }
 
+          if (route.name === "Records") {
+            iconName = focused ? "document-text" : "document-text-outline";
+          }
+
           if (route.name === "Profile") {
             iconName = focused ? "person" : "person-outline";
           }
@@ -102,6 +107,14 @@ export default function PatientTabs() {
         component={Appointments}
         options={{
           tabBarLabel: "Appointments",
+        }}
+      />
+
+      <Tab.Screen
+        name="Records"
+        component={MedicalRecords}
+        options={{
+          tabBarLabel: "Records",
         }}
       />
 
