@@ -7,7 +7,7 @@ import Appointments from "../screens/AppointmentScreen";
 import Profile from "../screens/ProfileScren";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
-
+import HealthRecordsScreen from "../screens/HealthRecordScreen";
 const Tab = createBottomTabNavigator();
 
 export default function PatientTabs() {
@@ -85,6 +85,11 @@ export default function PatientTabs() {
           if (route.name === "Profile") {
             iconName = focused ? "person" : "person-outline";
           }
+          if (route.name === "HealthRecords") {
+  iconName = focused
+    ? "medical"
+    : "medical-outline";
+}
 
           return <Ionicons name={iconName} size={26} color={color} />;
         },
@@ -104,6 +109,13 @@ export default function PatientTabs() {
           tabBarLabel: "Appointments",
         }}
       />
+      <Tab.Screen
+  name="HealthRecords"
+  component={HealthRecordsScreen}
+  options={{
+    tabBarLabel: "Records",
+  }}
+/>
 
       <Tab.Screen
         name="Profile"
@@ -113,5 +125,6 @@ export default function PatientTabs() {
         }}
       />
     </Tab.Navigator>
+    
   );
 }

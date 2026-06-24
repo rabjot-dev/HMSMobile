@@ -138,7 +138,7 @@ export default function AppointmentDetails() {
 
           <InfoRow label="Current Status" value={appointment?.status} />
 
-          <InfoRow label="Appointment ID" value={appointment?._id?.slice(-8)} />
+          <InfoRow label="Appointment ID" value={appointment?.appointmentId}/>
         </GlassCard>
 
         {appointment?.symptoms?.length > 0 && (

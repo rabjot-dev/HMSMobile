@@ -1,24 +1,47 @@
 import api from "./api.service";
 
-export const login =
-  async (
-    email: string,
-    password: string
-  ) => {
+import {
+  getRefreshToken,
+} from "../storage/token.storage";
 
-    return api.post(
-      "/auth/login",
-      {
-        loginId: email,
-        password,
-      }
+export const login = (
+  email: string,
+  password: string
+) => {
+  return api.post(
+    "/auth/login",
+    {
+      loginId: email,
+      password,
+    }
+  );
+};
+
+export const createPassword = (
+  data: any
+) => {
+  return api.post(
+    "/auth/create-password",
+    data
+  );
+};
+
+export const getCurrentUser =
+  () => {
+    return api.get(
+      "/auth/me"
     );
   };
 
-export const createPassword =
-  (data: any) => {
+export const logout =
+  async () => {
+    const refreshToken =
+      await getRefreshToken();
+
     return api.post(
-      "/auth/create-password",
-      data
+      "/auth/logout",
+      {
+        refreshToken,
+      }
     );
   };

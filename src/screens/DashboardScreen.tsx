@@ -30,29 +30,20 @@ export default function Dashboard() {
     setRefreshing(false);
   };
   const [loading, setLoading] = useState(true);
-   useEffect(() => {
-    console.log(
-      "UPDATED DASHBOARD",
-      dashboard
-    );
-  }, [dashboard]);
+ useEffect(() => {
+  loadDashboard();
+}, []);
+
+useEffect(() => {
+}, [dashboard]);
 
   const loadDashboard = async () => {
     try {
       setLoading(true);
 
 const response = await getDashboard();
-
-console.log(
-  "API DATA",
-  response.data.data
-)
       setDashboard(response.data.data);
-      
-      console.log(
-  "DASHBOARD STATE",
-  dashboard
-);
+
     } catch (error) {
       console.log(error);
     } finally {
@@ -122,11 +113,14 @@ console.log(
             title="Profile"
             onPress={() => navigation.navigate("Profile")}
           />
-
-          <QuickActionCard
-            title="Records"
-            onPress={() => Alert.alert("Coming Soon")}
-          />
+<QuickActionCard
+  title="Records"
+  onPress={() =>
+    navigation.navigate(
+      "HealthRecords",
+    )
+  }
+/>
         </View>
 
         <Text style={styles.section}>Appointment Summary</Text>

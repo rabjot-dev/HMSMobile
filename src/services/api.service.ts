@@ -1,27 +1,71 @@
-import axios from "axios";
+import axios, {
+  AxiosError,
+  AxiosRequestConfig,
+} from "axios";
 
-import { API_BASE_URL }
-from "../constants/api";
+import { API_BASE_URL } from "../constants/api";
 
 import {
   getToken,
   getRefreshToken,
   saveToken,
   removeTokens,
+} from "../storage/token.storage";
+
+import {
+  resetToLogin,
+} from "../navigation/RootNavigation";
+
+interface RetryAxiosRequestConfig
+  extends AxiosRequestConfig {
+  _retry?: boolean;
 }
-from "../storage/token.storage";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 15000,
 });
+
+let isRefreshing = false;
+
+let failedQueue: {
+  resolve: (token: string) => void;
+  reject: (error: unknown) => void;
+}[] = [];
+
+const processQueue = (
+  error: unknown,
+  token?: string
+) => {
+  failedQueue.forEach(
+    ({ resolve, reject }) => {
+      if (error) {
+        reject(error);
+      } else if (token) {
+        resolve(token);
+      }
+    }
+  );
+
+  failedQueue = [];
+};
+
+const logoutUser = async () => {
+  await removeTokens();
+
+  setTimeout(() => {
+    resetToLogin();
+  }, 0);
+};
 
 api.interceptors.request.use(
   async (config) => {
-
-    const token =
-      await getToken();
+    const token = await getToken();
 
     if (token) {
+      config.headers =
+        config.headers ?? {};
+
       config.headers.Authorization =
         `Bearer ${token}`;
     }
@@ -33,22 +77,61 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
 
-  async (error) => {
-
+  async (
+    error: AxiosError
+  ) => {
     const originalRequest =
-      error.config;
+      error.config as RetryAxiosRequestConfig;
+
+    if (
+      originalRequest?.url?.includes(
+        "/auth/refresh-token"
+      )
+    ) {
+      await logoutUser();
+
+      return Promise.reject(error);
+    }
 
     if (
       error.response?.status ===
         401 &&
+      originalRequest &&
       !originalRequest._retry
     ) {
-
       originalRequest._retry =
         true;
 
-      try {
+      if (isRefreshing) {
+        return new Promise<string>(
+          (
+            resolve,
+            reject
+          ) => {
+            failedQueue.push({
+              resolve,
+              reject,
+            });
+          }
+        ).then(
+          (token) => {
+            originalRequest.headers =
+              originalRequest.headers ??
+              {};
 
+            originalRequest.headers.Authorization =
+              `Bearer ${token}`;
+
+            return api(
+              originalRequest
+            );
+          }
+        );
+      }
+
+      isRefreshing = true;
+
+      try {
         const refreshToken =
           await getRefreshToken();
 
@@ -72,22 +155,41 @@ api.interceptors.response.use(
           newAccessToken
         );
 
+        processQueue(
+          null,
+          newAccessToken
+        );
+
+        originalRequest.headers =
+          originalRequest.headers ??
+          {};
+
         originalRequest.headers.Authorization =
           `Bearer ${newAccessToken}`;
 
         return api(
           originalRequest
         );
+      } catch (
+        refreshError
+      ) {
+        processQueue(
+          refreshError
+        );
 
-      } catch {
+        await logoutUser();
 
-        await removeTokens();
-
-        throw error;
+        return Promise.reject(
+          refreshError
+        );
+      } finally {
+        isRefreshing = false;
       }
     }
 
-    throw error;
+    return Promise.reject(
+      error
+    );
   }
 );
 
