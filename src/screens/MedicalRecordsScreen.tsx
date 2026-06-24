@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -15,16 +14,18 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import GlassCard from "../components/cards/GlassCard";
 import {
   getMyLabReports,
+  getMyHealthRecords,
   getMyPrescriptions,
 } from "../services/medical-record.service";
 
 export default function MedicalRecordsScreen() {
   const navigation = useNavigation<any>();
 
-  const [activeTab, setActiveTab] = useState<"PRESCRIPTIONS" | "LAB_REPORTS">(
-    "PRESCRIPTIONS",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "PRESCRIPTIONS" | "HEALTH_RECORDS" | "LAB_REPORTS"
+  >("PRESCRIPTIONS");
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
+  const [healthRecords, setHealthRecords] = useState<any[]>([]);
   const [labReports, setLabReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -33,12 +34,18 @@ export default function MedicalRecordsScreen() {
     try {
       setLoading(true);
 
-      const [prescriptionResponse, labReportResponse] = await Promise.all([
+      const [
+        prescriptionResponse,
+        healthRecordResponse,
+        labReportResponse,
+      ] = await Promise.all([
         getMyPrescriptions(),
+        getMyHealthRecords(),
         getMyLabReports(),
       ]);
 
       setPrescriptions(prescriptionResponse.data.data || []);
+      setHealthRecords(healthRecordResponse.data.data || []);
       setLabReports(labReportResponse.data.data || []);
     } catch {
     } finally {
@@ -81,10 +88,39 @@ export default function MedicalRecordsScreen() {
     </TouchableOpacity>
   );
 
+  const renderDocumentRecord = ({ item }: { item: any }) => (
+    <TouchableOpacity
+      activeOpacity={0.86}
+      onPress={() =>
+        navigation.navigate("HealthRecordDetail", { id: item._id })
+      }
+    >
+      <GlassCard>
+        <Text style={styles.cardTitle}>{item?.title || "Untitled record"}</Text>
+
+        <Text style={styles.departmentText}>
+          {formatDocumentType(item?.documentType)}
+        </Text>
+
+        <Text style={styles.cardDate}>
+          {(item?.documentDate || item?.createdAt)?.split("T")[0] ||
+            "Date not available"}
+        </Text>
+
+        <Text style={styles.openHint}>View document details</Text>
+      </GlassCard>
+    </TouchableOpacity>
+  );
+
   const emptyText =
     activeTab === "PRESCRIPTIONS"
       ? "No prescriptions found"
+      : activeTab === "HEALTH_RECORDS"
+        ? "No health records found"
       : "No lab reports found";
+
+  const activeRecords =
+    activeTab === "HEALTH_RECORDS" ? healthRecords : labReports;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -110,11 +146,28 @@ export default function MedicalRecordsScreen() {
               activeTab === "PRESCRIPTIONS" && styles.activeTabText,
             ]}
           >
-            Prescriptions
-          </Text>
-        </TouchableOpacity>
+          Prescriptions
+        </Text>
+      </TouchableOpacity>
 
-        <TouchableOpacity
+      <TouchableOpacity
+        style={[
+          styles.tabButton,
+          activeTab === "HEALTH_RECORDS" && styles.activeTab,
+        ]}
+        onPress={() => setActiveTab("HEALTH_RECORDS")}
+      >
+        <Text
+          style={[
+            styles.tabText,
+            activeTab === "HEALTH_RECORDS" && styles.activeTabText,
+          ]}
+        >
+          Health Records
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
           style={[
             styles.tabButton,
             activeTab === "LAB_REPORTS" && styles.activeTab,
@@ -158,25 +211,40 @@ export default function MedicalRecordsScreen() {
           }
         />
       ) : (
-        <ScrollView
+        <FlatList
+          data={activeRecords}
+          keyExtractor={(item) => item._id}
+          renderItem={renderDocumentRecord}
           contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
-        >
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>
-              {labReports.length ? "Lab Reports" : emptyText}
-            </Text>
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyTitle}>{emptyText}</Text>
 
-            <Text style={styles.emptySubtitle}>
-              Lab reports will appear here when available.
-            </Text>
-          </View>
-        </ScrollView>
+              <Text style={styles.emptySubtitle}>
+                {activeTab === "HEALTH_RECORDS"
+                  ? "Uploaded health records will appear here."
+                  : "Uploaded lab reports will appear here."}
+              </Text>
+            </View>
+          }
+        />
       )}
     </SafeAreaView>
   );
+}
+
+function formatDocumentType(value?: string) {
+  if (!value) {
+    return "Document";
+  }
+
+  return value
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 const styles = StyleSheet.create({
@@ -226,6 +294,8 @@ const styles = StyleSheet.create({
   tabText: {
     color: "#475569",
     fontWeight: "700",
+    fontSize: 12,
+    textAlign: "center",
   },
 
   activeTabText: {

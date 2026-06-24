@@ -28,4 +28,8 @@ export type RootStackParamList = {
   PrescriptionDetail: {
     id: string;
   };
+
+  HealthRecordDetail: {
+    id: string;
+  };
 };

@@ -30,6 +30,7 @@ export default function AppointmentDetails() {
   const [appointment, setAppointment] = useState<any>(null);
 
   const [loading, setLoading] = useState(true);
+  const isCancelled = appointment?.status === "CANCELLED";
 
   const loadAppointment = useCallback(async () => {
     try {
@@ -129,10 +130,20 @@ export default function AppointmentDetails() {
                 fontWeight: "700",
               }}
             >
-              Consultation Scheduled
+              {isCancelled ? "Appointment Cancelled" : "Consultation Scheduled"}
             </Text>
           </View>
         </GlassCard>
+
+        {isCancelled && (
+          <GlassCard>
+            <Text style={styles.cancelledTitle}>Appointment Cancelled</Text>
+            <Text style={styles.cancelledText}>
+              This appointment has been cancelled. Please book another
+              appointment with an available doctor.
+            </Text>
+          </GlassCard>
+        )}
 
         <GlassCard>
           <Text style={styles.sectionTitle}>Appointment Information</Text>
@@ -261,6 +272,19 @@ const styles = StyleSheet.create({
 
   symptoms: {
     color: "#334155",
+    lineHeight: 22,
+  },
+
+  cancelledTitle: {
+    color: "#DC2626",
+    fontSize: 18,
+    fontWeight: "800",
+    marginBottom: 8,
+  },
+
+  cancelledText: {
+    color: "#475569",
+    fontWeight: "600",
     lineHeight: 22,
   },
 
