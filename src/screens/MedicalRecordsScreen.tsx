@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -17,110 +17,208 @@ import {
   getMyHealthRecords,
   getMyPrescriptions,
 } from "../services/medical-record.service";
+import { getApiErrorMessage } from "../utils/api-error";
+import { formatDate, formatDocumentType } from "../utils/format";
+
+type RecordTab = "PRESCRIPTIONS" | "HEALTH_RECORDS" | "LAB_REPORTS";
+
+const PAGE_LIMIT = 10;
 
 export default function MedicalRecordsScreen() {
   const navigation = useNavigation<any>();
 
-  const [activeTab, setActiveTab] = useState<
-    "PRESCRIPTIONS" | "HEALTH_RECORDS" | "LAB_REPORTS"
-  >("PRESCRIPTIONS");
-  const [prescriptions, setPrescriptions] = useState<any[]>([]);
-  const [healthRecords, setHealthRecords] = useState<any[]>([]);
-  const [labReports, setLabReports] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<RecordTab>("PRESCRIPTIONS");
+  const [recordsByTab, setRecordsByTab] = useState<Record<RecordTab, any[]>>({
+    PRESCRIPTIONS: [],
+    HEALTH_RECORDS: [],
+    LAB_REPORTS: [],
+  });
+  const [pagesByTab, setPagesByTab] = useState<Record<RecordTab, number>>({
+    PRESCRIPTIONS: 1,
+    HEALTH_RECORDS: 1,
+    LAB_REPORTS: 1,
+  });
+  const [totalPagesByTab, setTotalPagesByTab] = useState<
+    Record<RecordTab, number>
+  >({
+    PRESCRIPTIONS: 1,
+    HEALTH_RECORDS: 1,
+    LAB_REPORTS: 1,
+  });
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const loadRecords = async () => {
-    try {
-      setLoading(true);
+  const activeRecords = recordsByTab[activeTab];
+  const hasMore = pagesByTab[activeTab] < totalPagesByTab[activeTab];
 
-      const [
-        prescriptionResponse,
-        healthRecordResponse,
-        labReportResponse,
-      ] = await Promise.all([
-        getMyPrescriptions(),
-        getMyHealthRecords(),
-        getMyLabReports(),
-      ]);
+  const loadRecords = useCallback(
+    async (tab = activeTab, nextPage = 1, append = false, showLoader = true) => {
+      try {
+        if (append) {
+          setLoadingMore(true);
+        } else if (showLoader) {
+          setLoading(true);
+        }
 
-      setPrescriptions(prescriptionResponse.data.data || []);
-      setHealthRecords(healthRecordResponse.data.data || []);
-      setLabReports(labReportResponse.data.data || []);
-    } catch {
-    } finally {
-      setLoading(false);
-    }
-  };
+        setErrorMessage("");
 
-  const onRefresh = async () => {
+        const params = {
+          page: nextPage,
+          limit: PAGE_LIMIT,
+        };
+
+        const response =
+          tab === "PRESCRIPTIONS"
+            ? await getMyPrescriptions(params)
+            : tab === "HEALTH_RECORDS"
+              ? await getMyHealthRecords(params)
+              : await getMyLabReports(params);
+
+        const records = response.data.data || [];
+        const meta = response.data.pagination || {};
+
+        setRecordsByTab((currentRecords) => ({
+          ...currentRecords,
+          [tab]: append ? [...currentRecords[tab], ...records] : records,
+        }));
+        setPagesByTab((currentPages) => ({
+          ...currentPages,
+          [tab]: meta.page || nextPage,
+        }));
+        setTotalPagesByTab((currentTotalPages) => ({
+          ...currentTotalPages,
+          [tab]: meta.totalPages || 1,
+        }));
+      } catch (error) {
+        setErrorMessage(
+          getApiErrorMessage(error, "Unable to load medical records"),
+        );
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [activeTab],
+  );
+
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadRecords();
+    await loadRecords(activeTab, 1, false, false);
     setRefreshing(false);
-  };
+  }, [activeTab, loadRecords]);
+
+  const loadMoreRecords = useCallback(() => {
+    if (!hasMore || loading || loadingMore) {
+      return;
+    }
+
+    loadRecords(activeTab, pagesByTab[activeTab] + 1, true, false);
+  }, [activeTab, hasMore, loadRecords, loading, loadingMore, pagesByTab]);
 
   useFocusEffect(
     useCallback(() => {
-      loadRecords();
-    }, []),
+      loadRecords(activeTab, 1);
+    }, [activeTab, loadRecords]),
   );
 
-  const renderPrescription = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      activeOpacity={0.86}
-      onPress={() => navigation.navigate("PrescriptionDetail", { id: item._id })}
-    >
-      <GlassCard>
-        <Text style={styles.cardTitle}>
-          Dr. {item?.doctorEmployeeId?.name || "Not available"}
-        </Text>
+  const changeTab = useCallback((tab: RecordTab) => {
+    setActiveTab(tab);
+  }, []);
 
-        <Text style={styles.departmentText}>
-          {item?.doctorEmployeeId?.department || "Department not available"}
-        </Text>
+  const renderPrescription = useCallback(
+    ({ item }: { item: any }) => (
+      <TouchableOpacity
+        activeOpacity={0.86}
+        onPress={() =>
+          navigation.navigate("PrescriptionDetail", { id: item._id })
+        }
+      >
+        <GlassCard>
+          <Text style={styles.cardTitle}>
+            Dr. {item?.doctorEmployeeId?.name || "Not available"}
+          </Text>
 
-        <Text style={styles.cardDate}>
-          {item?.createdAt?.split("T")[0] || "Date not available"}
-        </Text>
+          <Text style={styles.departmentText}>
+            {item?.doctorEmployeeId?.department || "Department not available"}
+          </Text>
 
-        <Text style={styles.openHint}>View full prescription</Text>
-      </GlassCard>
-    </TouchableOpacity>
+          <Text style={styles.cardDate}>{formatDate(item?.createdAt)}</Text>
+
+          <Text style={styles.openHint}>View full prescription</Text>
+        </GlassCard>
+      </TouchableOpacity>
+    ),
+    [navigation],
   );
 
-  const renderDocumentRecord = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      activeOpacity={0.86}
-      onPress={() =>
-        navigation.navigate("HealthRecordDetail", { id: item._id })
-      }
-    >
-      <GlassCard>
-        <Text style={styles.cardTitle}>{item?.title || "Untitled record"}</Text>
+  const renderDocumentRecord = useCallback(
+    ({ item }: { item: any }) => (
+      <TouchableOpacity
+        activeOpacity={0.86}
+        onPress={() =>
+          navigation.navigate("HealthRecordDetail", { id: item._id })
+        }
+      >
+        <GlassCard>
+          <Text style={styles.cardTitle}>{item?.title || "Untitled record"}</Text>
 
-        <Text style={styles.departmentText}>
-          {formatDocumentType(item?.documentType)}
-        </Text>
+          <Text style={styles.departmentText}>
+            {formatDocumentType(item?.documentType)}
+          </Text>
 
-        <Text style={styles.cardDate}>
-          {(item?.documentDate || item?.createdAt)?.split("T")[0] ||
-            "Date not available"}
-        </Text>
+          <Text style={styles.cardDate}>
+            {formatDate(item?.documentDate || item?.createdAt)}
+          </Text>
 
-        <Text style={styles.openHint}>View document details</Text>
-      </GlassCard>
-    </TouchableOpacity>
+          <Text style={styles.openHint}>View document details</Text>
+        </GlassCard>
+      </TouchableOpacity>
+    ),
+    [navigation],
   );
 
-  const emptyText =
-    activeTab === "PRESCRIPTIONS"
+  const emptyText = useMemo(() => {
+    if (errorMessage) {
+      return errorMessage;
+    }
+
+    return activeTab === "PRESCRIPTIONS"
       ? "No prescriptions found"
       : activeTab === "HEALTH_RECORDS"
         ? "No health records found"
-      : "No lab reports found";
+        : "No lab reports found";
+  }, [activeTab, errorMessage]);
 
-  const activeRecords =
-    activeTab === "HEALTH_RECORDS" ? healthRecords : labReports;
+  const emptySubtitle = useMemo(() => {
+    if (errorMessage) {
+      return "Pull down to try again.";
+    }
+
+    return activeTab === "PRESCRIPTIONS"
+      ? "Completed consultation prescriptions will appear here."
+      : activeTab === "HEALTH_RECORDS"
+        ? "Uploaded health records will appear here."
+        : "Uploaded lab reports will appear here.";
+  }, [activeTab, errorMessage]);
+
+  const listFooter = useMemo(() => {
+    if (!loadingMore) {
+      return null;
+    }
+
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator color="#2563EB" />
+      </View>
+    );
+  }, [loadingMore]);
+
+  const renderActiveRecord =
+    activeTab === "PRESCRIPTIONS"
+      ? renderPrescription
+      : renderDocumentRecord;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -138,7 +236,7 @@ export default function MedicalRecordsScreen() {
             styles.tabButton,
             activeTab === "PRESCRIPTIONS" && styles.activeTab,
           ]}
-          onPress={() => setActiveTab("PRESCRIPTIONS")}
+          onPress={() => changeTab("PRESCRIPTIONS")}
         >
           <Text
             style={[
@@ -146,33 +244,33 @@ export default function MedicalRecordsScreen() {
               activeTab === "PRESCRIPTIONS" && styles.activeTabText,
             ]}
           >
-          Prescriptions
-        </Text>
-      </TouchableOpacity>
+            Prescriptions
+          </Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        style={[
-          styles.tabButton,
-          activeTab === "HEALTH_RECORDS" && styles.activeTab,
-        ]}
-        onPress={() => setActiveTab("HEALTH_RECORDS")}
-      >
-        <Text
+        <TouchableOpacity
           style={[
-            styles.tabText,
-            activeTab === "HEALTH_RECORDS" && styles.activeTabText,
+            styles.tabButton,
+            activeTab === "HEALTH_RECORDS" && styles.activeTab,
           ]}
+          onPress={() => changeTab("HEALTH_RECORDS")}
         >
-          Health Records
-        </Text>
-      </TouchableOpacity>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "HEALTH_RECORDS" && styles.activeTabText,
+            ]}
+          >
+            Health Records
+          </Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
+        <TouchableOpacity
           style={[
             styles.tabButton,
             activeTab === "LAB_REPORTS" && styles.activeTab,
           ]}
-          onPress={() => setActiveTab("LAB_REPORTS")}
+          onPress={() => changeTab("LAB_REPORTS")}
         >
           <Text
             style={[
@@ -191,60 +289,32 @@ export default function MedicalRecordsScreen() {
 
           <Text style={styles.loadingText}>Loading medical records...</Text>
         </View>
-      ) : activeTab === "PRESCRIPTIONS" ? (
-        <FlatList
-          data={prescriptions}
-          keyExtractor={(item) => item._id}
-          renderItem={renderPrescription}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyTitle}>{emptyText}</Text>
-
-              <Text style={styles.emptySubtitle}>
-                Completed consultation prescriptions will appear here.
-              </Text>
-            </View>
-          }
-        />
       ) : (
         <FlatList
           data={activeRecords}
           keyExtractor={(item) => item._id}
-          renderItem={renderDocumentRecord}
+          renderItem={renderActiveRecord}
           contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={5}
+          onEndReached={loadMoreRecords}
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={listFooter}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyTitle}>{emptyText}</Text>
 
-              <Text style={styles.emptySubtitle}>
-                {activeTab === "HEALTH_RECORDS"
-                  ? "Uploaded health records will appear here."
-                  : "Uploaded lab reports will appear here."}
-              </Text>
+              <Text style={styles.emptySubtitle}>{emptySubtitle}</Text>
             </View>
           }
         />
       )}
     </SafeAreaView>
   );
-}
-
-function formatDocumentType(value?: string) {
-  if (!value) {
-    return "Document";
-  }
-
-  return value
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 const styles = StyleSheet.create({
@@ -360,5 +430,9 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: "center",
     lineHeight: 22,
+  },
+
+  footerLoader: {
+    paddingVertical: 18,
   },
 });

@@ -7,7 +7,7 @@ interface Props {
   value: string;
 }
 
-export default function InfoRow({ label, value }: Props) {
+function InfoRow({ label, value }: Props) {
   return (
     <View style={styles.row}>
       <Text style={styles.label}>{label}</Text>
@@ -16,6 +16,8 @@ export default function InfoRow({ label, value }: Props) {
     </View>
   );
 }
+
+export default React.memo(InfoRow);
 
 const styles = StyleSheet.create({
   row: {

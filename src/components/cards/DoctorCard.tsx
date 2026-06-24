@@ -7,7 +7,7 @@ interface Props {
   onPress: () => void;
 }
 
-export default function DoctorCard({ doctor, selected, onPress }: Props) {
+function DoctorCard({ doctor, selected, onPress }: Props) {
   return (
     <TouchableOpacity
       style={[styles.card, selected && styles.selectedCard]}
@@ -29,6 +29,8 @@ export default function DoctorCard({ doctor, selected, onPress }: Props) {
     </TouchableOpacity>
   );
 }
+
+export default React.memo(DoctorCard);
 
 const styles = StyleSheet.create({
   card: {

@@ -10,7 +10,7 @@ interface Props {
   onSelect: (slot: string) => void;
 }
 
-export default function TimeSlotSelector({
+function TimeSlotSelector({
   slots,
   selectedSlot,
   onSelect,
@@ -46,6 +46,8 @@ export default function TimeSlotSelector({
     </View>
   );
 }
+
+export default React.memo(TimeSlotSelector);
 
 const styles = StyleSheet.create({
   container: {

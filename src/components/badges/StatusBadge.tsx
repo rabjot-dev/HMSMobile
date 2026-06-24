@@ -8,7 +8,7 @@ interface Props {
   status: string;
 }
 
-export default function StatusBadge({ status }: Props) {
+function StatusBadge({ status }: Props) {
   const getConfig = () => {
     switch (status) {
       case "BOOKED":
@@ -81,6 +81,8 @@ export default function StatusBadge({ status }: Props) {
     </View>
   );
 }
+
+export default React.memo(StatusBadge);
 
 const styles = StyleSheet.create({
   badge: {

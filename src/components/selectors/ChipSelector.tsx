@@ -9,7 +9,7 @@ interface Props {
   onSelect: (value: string) => void;
 }
 
-export default function ChipSelector({
+function ChipSelector({
   label,
   options,
   selectedValue,
@@ -40,6 +40,8 @@ export default function ChipSelector({
     </View>
   );
 }
+
+export default React.memo(ChipSelector);
 
 const styles = StyleSheet.create({
   container: {

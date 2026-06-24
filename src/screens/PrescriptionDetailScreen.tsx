@@ -13,6 +13,8 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 
 import GlassCard from "../components/cards/GlassCard";
 import { getPrescriptionById } from "../services/medical-record.service";
+import { getApiErrorMessage } from "../utils/api-error";
+import { formatDate, formatInfoValue } from "../utils/format";
 
 export default function PrescriptionDetailScreen() {
   const navigation = useNavigation<any>();
@@ -27,8 +29,11 @@ export default function PrescriptionDetailScreen() {
       setLoading(true);
       const response = await getPrescriptionById(id);
       setPrescription(response.data.data);
-    } catch {
-      Alert.alert("Error", "Unable to load prescription");
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        getApiErrorMessage(error, "Unable to load prescription"),
+      );
     } finally {
       setLoading(false);
     }
@@ -74,7 +79,7 @@ export default function PrescriptionDetailScreen() {
 
         <Text style={styles.title}>Prescription</Text>
         <Text style={styles.subtitle}>
-          {prescription?.createdAt?.split("T")[0] || "Date not available"}
+          {formatDate(prescription?.createdAt)}
         </Text>
 
         <GlassCard>
@@ -129,39 +134,6 @@ function Info({ label, value }: { label: string; value?: unknown }) {
       <Text style={styles.infoValue}>{formatInfoValue(value)}</Text>
     </View>
   );
-}
-
-function formatInfoValue(value: unknown) {
-  if (value === null || value === undefined || value === "") {
-    return "Not available";
-  }
-
-  if (Array.isArray(value)) {
-    return value.length ? value.join(", ") : "Not available";
-  }
-
-  if (typeof value === "object") {
-    const entries = Object.entries(value as Record<string, unknown>).filter(
-      ([, fieldValue]) =>
-        fieldValue !== null && fieldValue !== undefined && fieldValue !== "",
-    );
-
-    if (!entries.length) {
-      return "Not available";
-    }
-
-    return entries
-      .map(([key, fieldValue]) => `${formatLabel(key)}: ${String(fieldValue)}`)
-      .join("\n");
-  }
-
-  return String(value);
-}
-
-function formatLabel(value: string) {
-  return value
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (letter) => letter.toUpperCase());
 }
 
 const styles = StyleSheet.create({

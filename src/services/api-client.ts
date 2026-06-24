@@ -15,10 +15,36 @@ type RetryRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
 };
 
+let refreshPromise: Promise<string | null> | null = null;
+
 // eslint-disable-next-line import/no-named-as-default-member
 export const apiClient = axiosClient.create({
   baseURL: API_BASE_URL,
 });
+
+const refreshAccessToken = async () => {
+  const refreshToken = await getRefreshToken();
+
+  if (!refreshToken) {
+    await removeTokens();
+    return null;
+  }
+
+  const response = await axiosClient.post(`${API_BASE_URL}/auth/refresh-token`, {
+    refreshToken,
+  });
+
+  const newAccessToken = response.data?.data?.accessToken;
+
+  if (!newAccessToken) {
+    await removeTokens();
+    return null;
+  }
+
+  await saveToken(newAccessToken);
+
+  return newAccessToken;
+};
 
 apiClient.interceptors.request.use(async (config) => {
   const accessToken = await getToken();
@@ -44,33 +70,22 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    const refreshToken = await getRefreshToken();
-
-    if (!refreshToken) {
-      await removeTokens();
-      return Promise.reject(error);
-    }
-
     try {
       originalRequest._retry = true;
 
-      const response = await axiosClient.post(`${API_BASE_URL}/auth/refresh-token`, {
-        refreshToken,
-      });
-
-      const newAccessToken = response.data?.data?.accessToken;
+      refreshPromise = refreshPromise || refreshAccessToken();
+      const newAccessToken = await refreshPromise;
+      refreshPromise = null;
 
       if (!newAccessToken) {
-        await removeTokens();
         return Promise.reject(error);
       }
-
-      await saveToken(newAccessToken);
 
       originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
       return apiClient(originalRequest);
     } catch (refreshError) {
+      refreshPromise = null;
       await removeTokens();
       return Promise.reject(refreshError);
     }

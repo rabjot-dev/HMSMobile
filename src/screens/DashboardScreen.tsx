@@ -7,11 +7,12 @@ import {
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import { getDashboard } from "../../src/services/patient.service";
+import { getApiErrorMessage } from "../../src/utils/api-error";
 
 import GlassCard from "../../src/components/cards/GlassCard";
 import StatCard from "../../src/components/cards/StatCard";
@@ -21,30 +22,41 @@ export default function Dashboard() {
   const navigation = useNavigation<any>();
   const [refreshing, setRefreshing] = useState(false);
   const [dashboard, setDashboard] = useState<any>(null);
-  const onRefresh = async () => {
-    setRefreshing(true);
-
-    await loadDashboard();
-
-    setRefreshing(false);
-  };
   const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    loadDashboard();
-  }, []);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const loadDashboard = async () => {
+  const loadDashboard = useCallback(async (showLoader = true) => {
     try {
-      setLoading(true);
+      if (showLoader) {
+        setLoading(true);
+      }
+
+      setErrorMessage("");
 
       const response = await getDashboard();
 
       setDashboard(response.data.data);
-    } catch {
+    } catch (error) {
+      setErrorMessage(getApiErrorMessage(error, "Unable to load dashboard"));
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+
+    await loadDashboard(false);
+
+    setRefreshing(false);
+  }, [loadDashboard]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboard();
+    }, [loadDashboard]),
+  );
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -54,7 +66,7 @@ export default function Dashboard() {
           }}
         >
           <GlassCard>
-            <Text>Loading Dashboard...</Text>
+            <Text>{errorMessage || "Loading Dashboard..."}</Text>
           </GlassCard>
         </View>
       </SafeAreaView>

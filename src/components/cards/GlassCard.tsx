@@ -6,9 +6,11 @@ interface Props {
   children: React.ReactNode;
 }
 
-export default function GlassCard({ children }: Props) {
+function GlassCard({ children }: Props) {
   return <View style={styles.card}>{children}</View>;
 }
+
+export default React.memo(GlassCard);
 
 const styles = StyleSheet.create({
   card: {

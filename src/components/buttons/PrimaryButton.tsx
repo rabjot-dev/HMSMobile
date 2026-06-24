@@ -16,7 +16,7 @@ interface Props {
   loading?: boolean;
 }
 
-export default function PrimaryButton({
+function PrimaryButton({
   title,
   onPress,
   loading = false,
@@ -44,6 +44,8 @@ export default function PrimaryButton({
     </TouchableOpacity>
   );
 }
+
+export default React.memo(PrimaryButton);
 
 const styles = StyleSheet.create({
   button: {

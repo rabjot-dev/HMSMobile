@@ -15,6 +15,8 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import GlassCard from "../components/cards/GlassCard";
 import { API_BASE_URL } from "../constants/api";
 import { getHealthRecordById } from "../services/medical-record.service";
+import { getApiErrorMessage } from "../utils/api-error";
+import { formatDate, formatDocumentType, formatInfoValue } from "../utils/format";
 
 export default function HealthRecordDetailScreen() {
   const navigation = useNavigation<any>();
@@ -29,8 +31,11 @@ export default function HealthRecordDetailScreen() {
       setLoading(true);
       const response = await getHealthRecordById(id);
       setRecord(response.data.data);
-    } catch {
-      Alert.alert("Error", "Unable to load medical document");
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        getApiErrorMessage(error, "Unable to load medical document"),
+      );
     } finally {
       setLoading(false);
     }
@@ -131,29 +136,6 @@ function getDocumentUrl(record: any) {
   }
 
   return `${API_BASE_URL.replace("/api", "")}${record.filePath}`;
-}
-
-function formatInfoValue(value: unknown) {
-  if (value === null || value === undefined || value === "") {
-    return "Not available";
-  }
-
-  return String(value);
-}
-
-function formatDate(value?: string) {
-  return value?.split("T")[0] || "Not available";
-}
-
-function formatDocumentType(value?: string) {
-  if (!value) {
-    return "Document";
-  }
-
-  return value
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 const styles = StyleSheet.create({

@@ -9,7 +9,7 @@ interface Props {
   onPress: () => void;
 }
 
-export default function QuickActionCard({ title, onPress }: Props) {
+function QuickActionCard({ title, onPress }: Props) {
   const getIcon = () => {
     switch (title) {
       case "Book":
@@ -39,6 +39,8 @@ export default function QuickActionCard({ title, onPress }: Props) {
     </TouchableOpacity>
   );
 }
+
+export default React.memo(QuickActionCard);
 
 const styles = StyleSheet.create({
   card: {

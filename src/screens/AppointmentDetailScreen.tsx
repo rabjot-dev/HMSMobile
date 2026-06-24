@@ -16,6 +16,7 @@ import {
   getAppointmentById,
   cancelAppointment,
 } from "../../src/services/appointment.service";
+import { getApiErrorMessage } from "../../src/utils/api-error";
 
 import GlassCard from "../../src/components/cards/GlassCard";
 import StatusBadge from "../../src/components/badges/StatusBadge";
@@ -39,7 +40,11 @@ export default function AppointmentDetails() {
       const response = await getAppointmentById(id as string);
 
       setAppointment(response.data.data);
-    } catch {
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        getApiErrorMessage(error, "Failed to load appointment"),
+      );
     } finally {
       setLoading(false);
     }
@@ -58,8 +63,11 @@ export default function AppointmentDetails() {
           onPress: () => navigation.goBack(),
         },
       ]);
-    } catch {
-      Alert.alert("Error", "Failed to cancel appointment");
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        getApiErrorMessage(error, "Failed to cancel appointment"),
+      );
     }
   };
 

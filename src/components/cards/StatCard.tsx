@@ -9,7 +9,7 @@ interface Props {
   value: number;
 }
 
-export default function StatCard({ title, value }: Props) {
+function StatCard({ title, value }: Props) {
   const getConfig = () => {
     switch (title) {
       case "Pending":
@@ -63,6 +63,8 @@ export default function StatCard({ title, value }: Props) {
     </View>
   );
 }
+
+export default React.memo(StatCard);
 
 const styles = StyleSheet.create({
   card: {

@@ -1,21 +1,23 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation } from "@react-navigation/native";
 import {
+  Alert,
+  ScrollView,
   StyleSheet,
   Text,
-  ScrollView,
-  TouchableOpacity,
   TextInput,
-  Alert,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
 import { minLength } from "../../src/utils/validators";
+import { getApiErrorMessage } from "../../src/utils/api-error";
 import GlassCard from "../../src/components/cards/GlassCard";
 import ChipSelector from "../../src/components/selectors/ChipSelector";
 import DoctorCard from "../../src/components/cards/DoctorCard";
 import TimeSlotSelector from "../../src/components/selectors/TimeSlotSelectors";
 import PrimaryButton from "../../src/components/buttons/PrimaryButton";
-import { useEffect, useState } from "react";
 
 import { getDoctors } from "../../src/services/employee.service";
 
@@ -28,40 +30,50 @@ export default function BookAppointment() {
   const navigation = useNavigation<any>();
 
   const [doctors, setDoctors] = useState<any[]>([]);
-
   const [selectedDepartment, setSelectedDepartment] = useState("");
-
   const [doctorId, setDoctorId] = useState("");
-
   const [appointmentDate, setAppointmentDate] = useState("");
-
   const [appointmentTime, setAppointmentTime] = useState("");
-
   const [symptoms, setSymptoms] = useState("");
-
   const [slots, setSlots] = useState<string[]>([]);
-  const [errors, setErrors] = useState<any>({});
-  useEffect(() => {
-    loadDoctors();
-  }, []);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const loadDoctors = async () => {
+  const loadDoctors = useCallback(async () => {
     try {
       const response = await getDoctors();
 
-      setDoctors(response.data.data);
-    } catch {
-      Alert.alert("Failed to load doctors");
+      setDoctors(response.data.data || []);
+    } catch (error) {
+      Alert.alert("Failed", getApiErrorMessage(error, "Failed to load doctors"));
     }
-  };
+  }, []);
 
-  const departments = [...new Set(doctors.map((doctor) => doctor.department))];
+  useEffect(() => {
+    loadDoctors();
+  }, [loadDoctors]);
 
-  const filteredDoctors = doctors.filter(
-    (doctor) => doctor.department === selectedDepartment,
+  const departments = useMemo(
+    () => [...new Set(doctors.map((doctor) => doctor.department).filter(Boolean))],
+    [doctors],
   );
 
-  const loadSlots = async () => {
+  const filteredDoctors = useMemo(
+    () =>
+      doctors.filter((doctor) => doctor.department === selectedDepartment),
+    [doctors, selectedDepartment],
+  );
+
+  const clearFieldError = useCallback((field: string) => {
+    setErrors((currentErrors) => ({
+      ...currentErrors,
+      [field]: "",
+    }));
+  }, []);
+
+  const loadSlots = useCallback(async () => {
     try {
       if (!doctorId || !appointmentDate) {
         Alert.alert("Please select doctor and date");
@@ -69,19 +81,25 @@ export default function BookAppointment() {
         return;
       }
 
+      setLoadingSlots(true);
+      setAppointmentTime("");
+      setSlots([]);
+
       const response = await getAvailableSlots(doctorId, appointmentDate);
 
-      setSlots(response.data.data);
-    } catch (error: any) {
+      setSlots(response.data.data || []);
+    } catch (error) {
       Alert.alert(
         "Failed",
-        error?.response?.data?.message || "Failed to load slots",
+        getApiErrorMessage(error, "Failed to load slots"),
       );
+    } finally {
+      setLoadingSlots(false);
     }
-  };
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const validateForm = () => {
-    const newErrors: any = {};
+  }, [appointmentDate, doctorId]);
+
+  const validateForm = useCallback(() => {
+    const newErrors: Record<string, string> = {};
 
     if (!selectedDepartment) {
       newErrors.department = "Please select department";
@@ -110,13 +128,15 @@ export default function BookAppointment() {
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
-  };
+  }, [appointmentDate, appointmentTime, doctorId, selectedDepartment, symptoms]);
 
-  const handleBookAppointment = async () => {
+  const handleBookAppointment = useCallback(async () => {
     try {
       if (!validateForm()) {
         return;
       }
+
+      setSubmitting(true);
 
       await bookAppointment({
         doctorId,
@@ -135,10 +155,43 @@ export default function BookAppointment() {
           onPress: () => navigation.goBack(),
         },
       ]);
-    } catch (error: any) {
-      Alert.alert("Failed", error?.response?.data?.message || "Booking failed");
+    } catch (error) {
+      Alert.alert("Failed", getApiErrorMessage(error, "Booking failed"));
+    } finally {
+      setSubmitting(false);
     }
-  };
+  }, [
+    appointmentDate,
+    appointmentTime,
+    doctorId,
+    navigation,
+    symptoms,
+    validateForm,
+  ]);
+
+  const selectDepartment = useCallback((department: string) => {
+    setSelectedDepartment(department);
+    setDoctorId("");
+    setSlots([]);
+    setAppointmentTime("");
+    clearFieldError("department");
+  }, [clearFieldError]);
+
+  const selectDoctor = useCallback((selectedDoctorId: string) => {
+    setDoctorId(selectedDoctorId);
+    setSlots([]);
+    setAppointmentTime("");
+    clearFieldError("doctor");
+  }, [clearFieldError]);
+
+  const selectDate = useCallback((selectedDate: Date) => {
+    const date = toDateInputValue(selectedDate);
+
+    setAppointmentDate(date);
+    setAppointmentTime("");
+    setSlots([]);
+    clearFieldError("appointmentDate");
+  }, [clearFieldError]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -161,15 +214,7 @@ export default function BookAppointment() {
             label=""
             options={departments}
             selectedValue={selectedDepartment}
-            onSelect={(department) => {
-              setSelectedDepartment(department);
-
-              setDoctorId("");
-
-              setSlots([]);
-
-              setAppointmentTime("");
-            }}
+            onSelect={selectDepartment}
           />
           {errors.department && (
             <Text
@@ -193,13 +238,7 @@ export default function BookAppointment() {
                 key={doctor._id}
                 doctor={doctor}
                 selected={doctorId === doctor._id}
-                onPress={() => {
-                  setDoctorId(doctor._id);
-
-                  setSlots([]);
-
-                  setAppointmentTime("");
-                }}
+                onPress={() => selectDoctor(doctor._id)}
               />
             ))}
           </GlassCard>
@@ -248,16 +287,16 @@ export default function BookAppointment() {
                 setShowDatePicker(false);
 
                 if (selectedDate) {
-                  const date = selectedDate.toISOString().split("T")[0];
-
-                  setAppointmentDate(date);
+                  selectDate(selectedDate);
                 }
               }}
             />
           )}
 
           <TouchableOpacity style={styles.loadSlots} onPress={loadSlots}>
-            <Text style={styles.loadSlotsText}>Load Available Slots</Text>
+            <Text style={styles.loadSlotsText}>
+              {loadingSlots ? "Loading Slots..." : "Load Available Slots"}
+            </Text>
           </TouchableOpacity>
 
           {slots.length > 0 && (
@@ -276,7 +315,10 @@ export default function BookAppointment() {
               <TimeSlotSelector
                 slots={slots}
                 selectedSlot={appointmentTime}
-                onSelect={setAppointmentTime}
+                onSelect={(slot) => {
+                  setAppointmentTime(slot);
+                  clearFieldError("appointmentTime");
+                }}
               />
               {errors.appointmentTime && (
                 <Text
@@ -298,11 +340,7 @@ export default function BookAppointment() {
             value={symptoms}
             onChangeText={(value) => {
               setSymptoms(value.slice(0, 500));
-
-              setErrors({
-                ...errors,
-                symptoms: "",
-              });
+              clearFieldError("symptoms");
             }}
             multiline
             placeholder="Describe your symptoms..."
@@ -338,11 +376,20 @@ export default function BookAppointment() {
         <PrimaryButton
           title="Book Appointment"
           onPress={handleBookAppointment}
+          loading={submitting}
         />
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+const toDateInputValue = (value: Date) => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
 
 const styles = StyleSheet.create({
   container: {

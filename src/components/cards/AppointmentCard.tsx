@@ -11,7 +11,7 @@ interface Props {
   onPress: () => void;
 }
 
-export default function AppointmentCard({ item, onPress }: Props) {
+function AppointmentCard({ item, onPress }: Props) {
   const doctorName = item?.doctorEmployeeId?.name || "Doctor";
 
   const doctorInitial = doctorName.charAt(0);
@@ -60,6 +60,8 @@ export default function AppointmentCard({ item, onPress }: Props) {
     </TouchableOpacity>
   );
 }
+
+export default React.memo(AppointmentCard);
 
 const styles = StyleSheet.create({
   card: {

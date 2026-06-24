@@ -1,7 +1,16 @@
 import { apiClient } from "./api-client";
 
-export const getAppointments = async () => {
-  return apiClient.get("/appointments");
+type ListParams = {
+  page?: number;
+  limit?: number;
+  status?: string;
+  search?: string;
+};
+
+export const getAppointments = async (params: ListParams = {}) => {
+  return apiClient.get("/appointments", {
+    params,
+  });
 };
 export const getAppointmentById = async (id: string) => {
   return apiClient.get(`/appointments/${id}`);

@@ -1,71 +1,165 @@
 import {
-  View,
-  Text,
+  ActivityIndicator,
   FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  TextInput,
   RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import { getAppointments } from "../../src/services/appointment.service";
+import { getApiErrorMessage } from "../../src/utils/api-error";
 
 import AppointmentCard from "../../src/components/cards/AppointmentCard";
+
+const APPOINTMENT_FILTERS = ["ALL", "PENDING", "BOOKED", "COMPLETED", "CANCELLED"];
+const PAGE_LIMIT = 10;
 
 export default function Appointments() {
   const navigation = useNavigation<any>();
   const [refreshing, setRefreshing] = useState(false);
-
   const [appointments, setAppointments] = useState<any[]>([]);
-
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [search, setSearch] = useState("");
-  const onRefresh = async () => {
-    setRefreshing(true);
-
-    await loadAppointments();
-
-    setRefreshing(false);
-  };
-
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("ALL");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const visibleAppointments = appointments.filter((appointment) => {
-    const matchesStatus =
-      selectedFilter === "ALL" || appointment.status === selectedFilter;
+  const hasMore = page < totalPages;
 
-    const doctorName =
-      appointment.doctorEmployeeId?.name?.toLowerCase() || "";
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+    }, 350);
 
-    const matchesSearch =
-      !search.trim() ||
-      doctorName.includes(search.trim().toLowerCase());
+    return () => clearTimeout(timer);
+  }, [search]);
 
-    return matchesStatus && matchesSearch;
-  });
+  const loadAppointments = useCallback(
+    async (nextPage = 1, append = false, showLoader = true) => {
+      try {
+        if (append) {
+          setLoadingMore(true);
+        } else if (showLoader) {
+          setLoading(true);
+        }
 
-  useFocusEffect(
-    React.useCallback(() => {
-      loadAppointments();
-    }, []),
+        setErrorMessage("");
+
+        const response = await getAppointments({
+          page: nextPage,
+          limit: PAGE_LIMIT,
+          status: selectedFilter === "ALL" ? undefined : selectedFilter,
+          search: debouncedSearch || undefined,
+        });
+
+        const records = response.data.data || [];
+        const meta = response.data.pagination || {};
+
+        setAppointments((currentAppointments) =>
+          append ? [...currentAppointments, ...records] : records,
+        );
+        setPage(meta.page || nextPage);
+        setTotalPages(meta.totalPages || 1);
+      } catch (error) {
+        setErrorMessage(
+          getApiErrorMessage(error, "Unable to load appointments"),
+        );
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [debouncedSearch, selectedFilter],
   );
 
-  const loadAppointments = async () => {
-    try {
-      setLoading(true);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
 
-      const response = await getAppointments();
+    await loadAppointments(1, false, false);
 
-      setAppointments(response.data.data);
-    } catch {
-    } finally {
-      setLoading(false);
+    setRefreshing(false);
+  }, [loadAppointments]);
+
+  const loadMoreAppointments = useCallback(() => {
+    if (!hasMore || loadingMore || loading) {
+      return;
     }
-  };
+
+    loadAppointments(page + 1, true, false);
+  }, [hasMore, loadAppointments, loading, loadingMore, page]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadAppointments(1);
+    }, [loadAppointments]),
+  );
+
+  const renderAppointment = useCallback(
+    ({ item }: { item: any }) => (
+      <AppointmentCard
+        item={item}
+        onPress={() =>
+          navigation.navigate("AppointmentDetail", {
+            id: item._id,
+          })
+        }
+      />
+    ),
+    [navigation],
+  );
+
+  const renderFilter = useCallback(
+    ({ item }: { item: string }) => (
+      <TouchableOpacity
+        onPress={() => setSelectedFilter(item)}
+        style={{
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+          borderRadius: 20,
+          marginRight: 10,
+
+          backgroundColor:
+            selectedFilter === item ? "#2563EB" : "#FFFFFF",
+
+          borderWidth: 1,
+          borderColor: "#E2E8F0",
+        }}
+      >
+        <Text
+          style={{
+            fontWeight: "700",
+
+            color: selectedFilter === item ? "#FFFFFF" : "#334155",
+          }}
+        >
+          {item}
+        </Text>
+      </TouchableOpacity>
+    ),
+    [selectedFilter],
+  );
+
+  const listFooter = useMemo(() => {
+    if (!loadingMore) {
+      return null;
+    }
+
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator color="#2563EB" />
+      </View>
+    );
+  }, [loadingMore]);
 
   if (loading) {
     return (
@@ -121,39 +215,13 @@ export default function Appointments() {
           }
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={["ALL", "PENDING", "BOOKED", "COMPLETED", "CANCELLED"]}
+          data={APPOINTMENT_FILTERS}
           keyExtractor={(item) => item}
           contentContainerStyle={{
             paddingHorizontal: 20,
             paddingTop: 16,
           }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => setSelectedFilter(item)}
-              style={{
-                paddingHorizontal: 16,
-                paddingVertical: 10,
-                borderRadius: 20,
-                marginRight: 10,
-
-                backgroundColor:
-                  selectedFilter === item ? "#2563EB" : "#FFFFFF",
-
-                borderWidth: 1,
-                borderColor: "#E2E8F0",
-              }}
-            >
-              <Text
-                style={{
-                  fontWeight: "700",
-
-                  color: selectedFilter === item ? "#FFFFFF" : "#334155",
-                }}
-              >
-                {item}
-              </Text>
-            </TouchableOpacity>
-          )}
+          renderItem={renderFilter}
         />
       </View>
 
@@ -161,30 +229,31 @@ export default function Appointments() {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        data={visibleAppointments}
+        data={appointments}
         keyExtractor={(item) => item._id}
         contentContainerStyle={{
           padding: 20,
         }}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={5}
+        onEndReached={loadMoreAppointments}
+        onEndReachedThreshold={0.4}
+        ListFooterComponent={listFooter}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>📅 No Appointments Yet</Text>
+            <Text style={styles.emptyTitle}>
+              {errorMessage || "No Appointments Yet"}
+            </Text>
 
             <Text style={styles.emptyText}>
-              Start your healthcare journey by booking your first consultation.
+              {errorMessage
+                ? "Pull down to try again."
+                : "Start your healthcare journey by booking your first consultation."}
             </Text>
           </View>
         }
-        renderItem={({ item }) => (
-          <AppointmentCard
-            item={item}
-            onPress={() =>
-              navigation.navigate("AppointmentDetail", {
-                id: item._id,
-              })
-            }
-          />
-        )}
+        renderItem={renderAppointment}
       />
     </SafeAreaView>
   );
@@ -248,5 +317,9 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: "#64748B",
     textAlign: "center",
+  },
+
+  footerLoader: {
+    paddingVertical: 18,
   },
 });
