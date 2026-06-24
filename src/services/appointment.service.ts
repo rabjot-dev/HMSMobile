@@ -1,51 +1,98 @@
 import api from "./api.service";
-
+let appointmentCache:
+  Record<
+    string,
+    any
+  > = {};
+  
 export const getAppointments =
-  () =>
-    api.get(
-      "/appointments"
-    );
+  async (
+    page = 1,
+    search = "",
+    status = "ALL",
+  ) => {
+    const key =
+      `${page}-${search}-${status}`;
 
-export const getAppointmentById =
-  (id: string) =>
-    api.get(
-      `/appointments/${id}`
-    );
+    if (
+      appointmentCache[
+        key
+      ]
+    ) {
+      return {
+        data:
+          appointmentCache[
+            key
+          ],
+      };
+    }
 
-export const cancelAppointment =
-  (id: string) =>
-    api.delete(
-      `/appointments/${id}`
-    );
-
-export const getAvailableSlots =
-  (
-    doctorId: string,
-    appointmentDate: string
-  ) =>
-    api.get(
-      "/appointments/available-slots",
-      {
-        params: {
-          doctorId,
-          appointmentDate,
+    const response =
+      await api.get(
+        "/appointments",
+        {
+          params: {
+            page,
+            limit: 5,
+            search,
+            status,
+          },
         },
-      }
-    );
+      );
 
-export const bookAppointment =
-  (data: any) =>
-    api.post(
-      "/appointments/patient/book",
-      data
-    );
+    appointmentCache[
+      key
+    ] =
+      response.data;
 
-export const updateMyAppointment =
-  (
-    id: string,
-    data: any
-  ) =>
-    api.put(
-      `/appointments/my/${id}`,
-      data
-    );
+    return response;
+  };
+export const clearAppointmentCache =
+  () => {
+    appointmentCache =
+      {};
+  };
+export const getAppointmentById = (
+  id: string,
+) =>
+  api.get(
+    `/appointments/${id}`,
+  );
+
+export const cancelMyAppointment = (
+  id: string,
+) =>
+  api.patch(
+    `/appointments/my/${id}/cancel`,
+  );
+
+export const getAvailableSlots = (
+  doctorId: string,
+  appointmentDate: string,
+) =>
+  api.get(
+    "/appointments/available-slots",
+    {
+      params: {
+        doctorId,
+        appointmentDate,
+      },
+    },
+  );
+
+export const bookAppointment = (
+  data: unknown,
+) =>
+  api.post(
+    "/appointments/patient/book",
+    data,
+  );
+
+export const updateMyAppointment = (
+  id: string,
+  data: unknown,
+) =>
+  api.put(
+    `/appointments/my/${id}`,
+    data,
+  );

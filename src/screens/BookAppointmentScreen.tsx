@@ -16,12 +16,11 @@ import DoctorCard from "../../src/components/cards/DoctorCard";
 import TimeSlotSelector from "../../src/components/selectors/TimeSlotSelectors";
 import PrimaryButton from "../../src/components/buttons/PrimaryButton";
 import { useEffect, useState } from "react";
-
 import { getDoctors } from "../../src/services/employee.service";
 
 import {
   getAvailableSlots,
-  bookAppointment,
+  bookAppointment, clearAppointmentCache
 } from "../../src/services/appointment.service";
 
 export default function BookAppointment() {
@@ -75,13 +74,6 @@ export default function BookAppointment() {
 
       setSlots(response.data.data);
     } catch (error: any) {
-  console.log(
-    "SLOTS ERROR",
-    error.response?.status,
-    error.response?.data,
-    error.message,
-  );
-
   Alert.alert(
     "Failed",
     error.response?.data
@@ -139,6 +131,7 @@ export default function BookAppointment() {
 
         symptoms: symptoms.trim() ? [symptoms] : [],
       });
+      clearAppointmentCache();
 
       Alert.alert("Success", "Appointment request sent", [
         {

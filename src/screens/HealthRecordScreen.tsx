@@ -1,15 +1,15 @@
 import React, {
+  useCallback,
   useEffect,
   useMemo,
   useState,
 } from "react";
-
 import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
-  View,
+  View,RefreshControl,
 } from "react-native";
 
 import {
@@ -19,17 +19,17 @@ import {
 import {
   NativeStackNavigationProp,
 } from "@react-navigation/native-stack";
-
+import Pagination from "../components/common/Pagination";
 import GlassCard from "../components/cards/GlassCard";
 import StatCard from "../components/cards/StatCard";
-
+import EmptyState from "../components/common/EmptyState";
 import HealthRecordTabs, {
   HealthRecordTab,
 } from "../components/health-records/HealthRecordTabs";
     import {
   getFileUrl,
 } from "../utils/fileUrl";
-
+import CardSkeleton from "../components/loaders/CardSkeleton";
 import TimelineCard from "../components/health-records/TimelineCard";
 import PrescriptionCard from "../components/health-records/PrescriptionCard";
 import LabReportCard from "../components/health-records/LabReportCard";
@@ -60,13 +60,30 @@ export default function HealthRecordScreen() {
     useNavigation<
       NativeStackNavigationProp<RootStackParamList>
     >();
+    
 
-  const {
-    healthRecord,
-    loading,
-    loadHealthRecord,
-  } =
-    useHealthRecords();
+const {
+  healthRecord,
+  loading,
+  refreshing,
+  loadHealthRecord,
+  refresh,
+} =
+  useHealthRecords();
+const [
+  timelinePage,
+  setTimelinePage,
+] = useState(1);
+
+const [
+  labPage,
+  setLabPage,
+] = useState(1);
+
+const [
+  documentPage,
+  setDocumentPage,
+] = useState(1);
 
   const [
     activeTab,
@@ -75,13 +92,24 @@ export default function HealthRecordScreen() {
     useState<HealthRecordTab>(
       "TIMELINE",
     );
+useEffect(() => {
+  setTimelinePage(1);
+  setLabPage(1);
+  setDocumentPage(1);
+}, [activeTab]);
 
-  useEffect(() => {
-    loadHealthRecord();
-  }, [
-    loadHealthRecord,
-  ]);
-
+useEffect(() => {
+  loadHealthRecord(
+    timelinePage,
+    labPage,
+    documentPage,
+  );
+}, [
+  timelinePage,
+  labPage,
+  documentPage,
+  loadHealthRecord,
+]);
   const prescriptions =
     useMemo(() => {
       return (
@@ -137,128 +165,164 @@ export default function HealthRecordScreen() {
 ) ?? []
       );
     }, [healthRecord]);
-
-const handleViewPrescription =
-  (
-    prescription:
-      PrescriptionGroup,
-  ) => {
-    navigation.navigate(
-      "PrescriptionDetails",
-      {
-        prescription,
-      },
-    );
-  };
-
-const handleDownloadPrescription =
-  async (
-    prescription:
-      PrescriptionGroup,
-  ) => {
-    await downloadPrescriptionPdf(
-      prescription,
-    );
-  };
-const handleViewReport =
-  async (
-    report: LabReport,
-  ) => {
-    const url =
-      getFileUrl(
-        report.documentUrl,
-      );
-
-    if (!url) {
-      return;
-    }
-
-    await openPdf(
-      url,
-      `${report.title}.pdf`,
-    );
-  };
-
-const handleDownloadReport =
-  async (
-    report:
-      LabReport,
-  ) => {
-    if (
-      !report.documentUrl
-    ) {
-      return;
-    }
-
-const url =
-  getFileUrl(
-    report.documentUrl,
+    const consultations =
+  useMemo(
+    () =>
+      healthRecord
+        ?.consultations ??
+      [],
+    [healthRecord],
   );
 
-if (!url) {
-  return;
-}
+const reports =
+  useMemo(
+    () =>
+      healthRecord
+        ?.labReports ??
+      [],
+    [healthRecord],
+  );
 
-console.log(url);
+const documents =
+  useMemo(
+    () =>
+      healthRecord
+        ?.medicalDocuments ??
+      [],
+    [healthRecord],
+  );
 
-await downloadFile(
-  url,
-  `${report.title}.pdf`,
-);
-  };
+const handleViewPrescription =
+  useCallback(
+    (
+      prescription:
+        PrescriptionGroup,
+    ) => {
+      navigation.navigate(
+        "PrescriptionDetails",
+        {
+          prescription,
+        },
+      );
+    },
+    [navigation],
+  );
+
+const handleDownloadPrescription =
+  useCallback(
+    async (
+      prescription:
+        PrescriptionGroup,
+    ) => {
+      await downloadPrescriptionPdf(
+        prescription,
+      );
+    },
+    [],
+  );
+const handleViewReport =
+  useCallback(
+    async (
+      report: LabReport,
+    ) => {
+      const url =
+        getFileUrl(
+          report.documentUrl,
+        );
+
+      if (!url) {
+        return;
+      }
+
+      await openPdf(
+        url,
+        `${report.title}.pdf`,
+      );
+    },
+    [],
+  );
+const handleDownloadReport =
+  useCallback(
+    async (
+      report:
+        LabReport,
+    ) => {
+      const url =
+        getFileUrl(
+          report.documentUrl,
+        );
+
+      if (!url) {
+        return;
+      }
+
+      await downloadFile(
+        url,
+        `${report.title}.pdf`,
+      );
+    },
+    [],
+  );
 const handleViewDocument =
-  async (
-    document:
-      MedicalDocument,
-  ) => {
-    const url =
-      getFileUrl(
-        document.documentUrl,
+  useCallback(
+    async (
+      document:
+        MedicalDocument,
+    ) => {
+      const url =
+        getFileUrl(
+          document.documentUrl,
+        );
+
+      if (!url) {
+        return;
+      }
+
+      await openPdf(
+        url,
+        `${document.title}.pdf`,
       );
-
-    if (!url) {
-      return;
-    }
-
-    await openPdf(
-      url,
-      `${document.title}.pdf`,
-    );
-  };
-
+    },
+    [],
+  );
 const handleDownloadDocument =
-  async (
-    document:
-      MedicalDocument,
-  ) => {
-    const url =
-      getFileUrl(
-        document.documentUrl,
+  useCallback(
+    async (
+      document:
+        MedicalDocument,
+    ) => {
+      const url =
+        getFileUrl(
+          document.documentUrl,
+        );
+
+      if (!url) {
+        return;
+      }
+
+      await downloadFile(
+        url,
+        `${document.title}.pdf`,
       );
-
-    if (!url) {
-      return;
-    }
-
-    await downloadFile(
-      url,
-      `${document.title}.pdf`,
-    );
-  };
-  if (loading) {
-    return (
-      <View
-        style={
-          styles.loaderContainer
-        }
-      >
-        <ActivityIndicator
-          size="large"
-          color="#2563EB"
-        />
-      </View>
-    );
-  }
+    },
+    [],
+  );
+if (
+  loading &&
+  !healthRecord
+) {
+  return (
+    <View
+      style={
+        styles.container
+      }
+    >
+      <CardSkeleton />
+      <CardSkeleton />
+      <CardSkeleton />
+    </View>
+  );
+}
 
   if (!healthRecord) {
     return (
@@ -274,14 +338,47 @@ const handleDownloadDocument =
       </View>
     );
   }
+  const onRefresh =
+  useCallback(
+    () => {
+      refresh(
+        timelinePage,
+        labPage,
+        documentPage,
+      );
+    },
+    [
+      timelinePage,
+      labPage,
+      documentPage,
+      refresh,
+    ],
+  );
 
-  return (
-    <ScrollView
-      contentContainerStyle={
-        styles.container
-      }
-      showsVerticalScrollIndicator={
-        false
+return (
+  <ScrollView
+    style={
+      styles.container
+    }
+    contentContainerStyle={
+      styles.contentContainer
+    }
+    
+    refreshControl={
+      <RefreshControl
+        refreshing={
+          refreshing
+        }
+        onRefresh={
+  onRefresh
+}
+        tintColor="#2563EB"
+      />
+    }
+  >
+    <View
+      style={
+        styles.header
       }
     >
       <Text
@@ -292,6 +389,23 @@ const handleDownloadDocument =
         Health Records
       </Text>
 
+      <Text
+        style={
+          styles.subtitle
+        }
+      >
+        View consultations,
+        prescriptions,
+        reports and
+        documents.
+      </Text>
+    </View>
+
+    <View
+      style={
+        styles.statsContainer
+      }
+    >
       <View
         style={
           styles.statsRow
@@ -324,6 +438,13 @@ const handleDownloadDocument =
           }
         />
       </View>
+    </View>
+
+    <View
+      style={
+        styles.cardContainer
+      }
+    >
 
       <GlassCard>
         <HealthRecordTabs
@@ -335,53 +456,80 @@ const handleDownloadDocument =
           }
         />
 
-        {activeTab ===
-          "TIMELINE" && (
-          <>
-            {healthRecord
-              .consultations
-              .length ===
-            0 ? (
-              <Text
-                style={
-                  styles.emptyText
-                }
-              >
-                No consultations
-                found
-              </Text>
-            ) : (
-              healthRecord.consultations.map(
-                (
-                  consultation,
-                ) => (
-                  <TimelineCard
-                    key={
-                      consultation._id
-                    }
-                    consultation={
-                      consultation
-                    }
-                  />
-                ),
-              )
-            )}
-          </>
+      {activeTab ===
+  "TIMELINE" && (
+  <>
+    {healthRecord
+      .consultations
+      .length ===
+    0 ? (
+      <EmptyState
+        title="No consultations found"
+      />
+    ) : (
+      <>
+        {consultations.map(
+          (
+            consultation,
+          ) => (
+            <TimelineCard
+              key={
+                consultation._id
+              }
+              consultation={
+                consultation
+              }
+            />
+          ),
         )}
+
+        <Pagination
+          page={
+            timelinePage
+          }
+          totalPages={
+            healthRecord.meta
+              .consultations
+              .totalPages
+          }
+          onPrevious={() =>
+            setTimelinePage(
+              (
+                prev,
+              ) =>
+                Math.max(
+                  1,
+                  prev - 1,
+                ),
+            )
+          }
+          onNext={() =>
+            setTimelinePage(
+              (
+                prev,
+              ) =>
+                Math.min(
+                  healthRecord.meta
+                    .consultations
+                    .totalPages,
+                  prev + 1,
+                ),
+            )
+          }
+        />
+      </>
+    )}
+  </>
+)}
 
         {activeTab ===
           "PRESCRIPTIONS" && (
           <>
             {prescriptions.length ===
             0 ? (
-              <Text
-                style={
-                  styles.emptyText
-                }
-              >
-                No prescriptions
-                found
-              </Text>
+             <EmptyState
+  title="No prescriptions found"
+/>
             ) : (
               prescriptions.map(
                 (
@@ -404,6 +552,40 @@ const handleDownloadDocument =
                 ),
               )
             )}
+            <Pagination
+  page={
+    labPage
+  }
+  totalPages={
+    healthRecord.meta
+      .labReports
+      .totalPages
+  }
+  onPrevious={() =>
+    setLabPage(
+      (
+        prev,
+      ) =>
+        Math.max(
+          1,
+          prev - 1,
+        ),
+    )
+  }
+  onNext={() =>
+    setLabPage(
+      (
+        prev,
+      ) =>
+        Math.min(
+          healthRecord.meta
+            .labReports
+            .totalPages,
+          prev + 1,
+        ),
+    )
+  }
+/>
           </>
         )}
 
@@ -412,15 +594,11 @@ const handleDownloadDocument =
   <>
     {healthRecord.labReports
       .length === 0 ? (
-      <Text
-        style={
-          styles.emptyText
-        }
-      >
-        No reports found
-      </Text>
+      <EmptyState
+  title="No reports found"
+/>
     ) : (
-      healthRecord.labReports.map(
+      reports.map(
         (
           report,
         ) => (
@@ -441,6 +619,40 @@ const handleDownloadDocument =
         ),
       )
     )}
+    <Pagination
+  page={
+    documentPage
+  }
+  totalPages={
+    healthRecord.meta
+      .medicalDocuments
+      .totalPages
+  }
+  onPrevious={() =>
+    setDocumentPage(
+      (
+        prev,
+      ) =>
+        Math.max(
+          1,
+          prev - 1,
+        ),
+    )
+  }
+  onNext={() =>
+    setDocumentPage(
+      (
+        prev,
+      ) =>
+        Math.min(
+          healthRecord.meta
+            .medicalDocuments
+            .totalPages,
+          prev + 1,
+        ),
+    )
+  }
+/>
   </>
 )}
 {activeTab ===
@@ -450,15 +662,11 @@ const handleDownloadDocument =
       .medicalDocuments
       .length ===
     0 ? (
-      <Text
-        style={
-          styles.emptyText
-        }
-      >
-        No documents found
-      </Text>
+      <EmptyState
+  title="No documents found"
+/>
     ) : (
-      healthRecord.medicalDocuments.map(
+      documents.map(
         (
           document,
         ) => (
@@ -479,9 +687,44 @@ const handleDownloadDocument =
         ),
       )
     )}
+    <Pagination
+  page={
+    documentPage
+  }
+  totalPages={
+    healthRecord.meta
+      .medicalDocuments
+      .totalPages
+  }
+  onPrevious={() =>
+    setDocumentPage(
+      (
+        prev,
+      ) =>
+        Math.max(
+          1,
+          prev - 1,
+        ),
+    )
+  }
+  onNext={() =>
+    setDocumentPage(
+      (
+        prev,
+      ) =>
+        Math.min(
+          healthRecord.meta
+            .medicalDocuments
+            .totalPages,
+          prev + 1,
+        ),
+    )
+  }
+/>
   </>
 )}
       </GlassCard>
+      </View>
     </ScrollView>
   );
 }
@@ -489,7 +732,12 @@ const handleDownloadDocument =
 const styles =
   StyleSheet.create({
     container: {
-      padding: 16,
+      flex: 1,
+      backgroundColor:
+        "#F4F7FC",
+    },
+
+    contentContainer: {
       paddingBottom: 120,
     },
 
@@ -499,15 +747,37 @@ const styles =
         "center",
       alignItems:
         "center",
+      backgroundColor:
+        "#F4F7FC",
+      padding: 20,
+    },
+
+    header: {
+      paddingHorizontal:
+        20,
+      paddingTop: 70,
     },
 
     heading: {
-      fontSize: 28,
+      fontSize: 30,
       fontWeight:
-        "700",
+        "800",
       color:
         "#0F172A",
-      marginBottom: 20,
+    },
+
+    subtitle: {
+      color:
+        "#64748B",
+      marginTop: 8,
+      fontSize: 15,
+      lineHeight: 22,
+    },
+
+    statsContainer: {
+      paddingHorizontal:
+        20,
+      marginTop: 20,
     },
 
     statsRow: {
@@ -515,6 +785,12 @@ const styles =
         "row",
       justifyContent:
         "space-between",
+    },
+
+    cardContainer: {
+      marginHorizontal:
+        20,
+      marginTop: 20,
       marginBottom: 20,
     },
 

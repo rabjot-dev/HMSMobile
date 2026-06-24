@@ -1,6 +1,6 @@
 import {
   useCallback,
-  useState,
+  useState,useMemo
 } from "react";
 
 import {
@@ -26,19 +26,43 @@ export default function useHealthRecords() {
   ] =
     useState(false);
 
+  const [
+    refreshing,
+    setRefreshing,
+  ] =
+    useState(false);
+
   const loadHealthRecord =
     useCallback(
-      async () => {
+      async (
+        timelinePage = 1,
+        labPage = 1,
+        documentPage = 1,
+        isRefresh = false,
+      ) => {
         try {
-          setLoading(
-            true,
-          );
+          if (
+            isRefresh
+          ) {
+            setRefreshing(
+              true,
+            );
+          } else {
+            setLoading(
+              true,
+            );
+          }
 
           const response =
-            await getMyHealthRecord();
+            await getMyHealthRecord(
+              timelinePage,
+              labPage,
+              documentPage,
+            );
 
           setHealthRecord(
-            response.data.data,
+            response.data
+              .data,
           );
         } catch (
           error: any
@@ -46,11 +70,14 @@ export default function useHealthRecords() {
           console.log(
             "Health Record Error",
             error?.response
-              ?.data ??
-              error,
+              ?.data ?? error,
           );
         } finally {
           setLoading(
+            false,
+          );
+
+          setRefreshing(
             false,
           );
         }
@@ -58,9 +85,39 @@ export default function useHealthRecords() {
       [],
     );
 
-  return {
+  const refresh =
+    useCallback(
+      (
+        timelinePage = 1,
+        labPage = 1,
+        documentPage = 1,
+      ) => {
+        loadHealthRecord(
+          timelinePage,
+          labPage,
+          documentPage,
+          true,
+        );
+      },
+      [
+        loadHealthRecord,
+      ],
+    );
+
+return useMemo(
+  () => ({
     healthRecord,
     loading,
+    refreshing,
     loadHealthRecord,
-  };
+    refresh,
+  }),
+  [
+    healthRecord,
+    loading,
+    refreshing,
+    loadHealthRecord,
+    refresh,
+  ],
+);
 }

@@ -12,21 +12,23 @@ interface Props {
   style?: StyleProp<ViewStyle>;
 }
 
-export default function GlassCard({
+function GlassCard({
   children,
-  style,
 }: Props) {
   return (
     <View
-      style={[
-        styles.card,
-        style,
-      ]}
+      style={
+        styles.card
+      }
     >
       {children}
     </View>
   );
 }
+
+export default React.memo(
+  GlassCard,
+);
 
 const styles = StyleSheet.create({
   card: {

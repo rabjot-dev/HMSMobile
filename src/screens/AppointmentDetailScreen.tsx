@@ -11,10 +11,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useState } from "react";
 
 import { useRoute, useNavigation } from "@react-navigation/native";
-
+import AppointmentSkeleton
+from "../../src/components/loaders/AppointmentSkeleton";
 import {
   getAppointmentById,
-  cancelAppointment,
+  cancelMyAppointment,
+  clearAppointmentCache
 } from "../../src/services/appointment.service";
 
 import GlassCard from "../../src/components/cards/GlassCard";
@@ -28,7 +30,11 @@ export default function AppointmentDetails() {
 
   const { id } = route.params;
   const [appointment, setAppointment] = useState<any>(null);
-
+const [
+  cancelling,
+  setCancelling,
+] =
+  useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,28 +53,81 @@ export default function AppointmentDetails() {
       setLoading(false);
     }
   };
-  const handleCancel = async () => {
+  const confirmCancel =
+  async () => {
     try {
-      await cancelAppointment(id as string);
+      setCancelling(
+        true,
+      );
 
-      Alert.alert("Success", "Appointment cancelled", [
-        {
-          text: "OK",
-          onPress: () => navigation.goBack(),
-        },
-      ]);
-    } catch {
-      Alert.alert("Error", "Failed to cancel appointment");
+      await cancelMyAppointment(
+        appointment._id,
+      );
+
+      Alert.alert(
+        "Success",
+        "Appointment cancelled successfully",
+      );
+clearAppointmentCache();
+      navigation.goBack();
+    } catch (
+      error
+    ) {
+      console.log(
+        "Cancel Error",
+        error,
+      );
+
+      Alert.alert(
+        "Error",
+        "Failed to cancel appointment",
+      );
+    } finally {
+      setCancelling(
+        false,
+      );
     }
   };
-
-  if (!appointment) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text>Loading...</Text>
-      </SafeAreaView>
+ const handleCancel =
+  () => {
+    Alert.alert(
+      "Cancel Appointment",
+      "Are you sure you want to cancel this appointment?",
+      [
+        {
+          text: "No",
+          style:
+            "cancel",
+        },
+        {
+          text: "Yes",
+          style:
+            "destructive",
+          onPress:
+            confirmCancel,
+        },
+      ],
     );
-  }
+  };
+  
+
+ if (loading) {
+  return (
+    <SafeAreaView
+      style={
+        styles.container
+      }
+    >
+      <View
+        style={{
+          padding: 20,
+        }}
+      >
+        <AppointmentSkeleton />
+      </View>
+    </SafeAreaView>
+  );
+}
 
   return (
     <SafeAreaView style={styles.container}>
@@ -194,8 +253,29 @@ export default function AppointmentDetails() {
 
         {(appointment?.status === "PENDING" ||
           appointment?.status === "BOOKED") && (
-          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-            <Text style={styles.buttonText}>Cancel Appointment</Text>
+         <TouchableOpacity
+  style={[
+    styles.cancelButton,
+    cancelling && {
+      opacity: 0.7,
+    },
+  ]}
+  disabled={
+    cancelling
+  }
+  onPress={
+    handleCancel
+  }
+>
+            <Text
+  style={
+    styles.buttonText
+  }
+>
+  {cancelling
+    ? "Cancelling..."
+    : "Cancel Appointment"}
+</Text>
           </TouchableOpacity>
         )}
       </ScrollView>
