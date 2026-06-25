@@ -20,7 +20,8 @@ import { getDoctors } from "../../src/services/employee.service";
 
 import {
   getAvailableSlots,
-  bookAppointment, clearAppointmentCache
+  bookAppointment,
+  clearAppointmentCache,
 } from "../../src/services/appointment.service";
 
 export default function BookAppointment() {
@@ -74,14 +75,13 @@ export default function BookAppointment() {
 
       setSlots(response.data.data);
     } catch (error: any) {
-  Alert.alert(
-    "Failed",
-    error.response?.data
-      ?.message ||
-      error.message ||
-      "Failed to load slots",
-  );
-}
+      Alert.alert(
+        "Failed",
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to load slots",
+      );
+    }
   };
   const [showDatePicker, setShowDatePicker] = useState(false);
   const validateForm = () => {

@@ -20,8 +20,6 @@ export type RootStackParamList = {
     id: string;
   };
   PrescriptionDetails: {
-  prescription:
-    PrescriptionGroup;
-};
-
+    prescription: PrescriptionGroup;
+  };
 };

@@ -45,9 +45,7 @@ export interface Consultation {
 
   vitals?: Vitals;
 
-  status:
-    | "IN_PROGRESS"
-    | "COMPLETED";
+  status: "IN_PROGRESS" | "COMPLETED";
 
   createdAt: string;
 

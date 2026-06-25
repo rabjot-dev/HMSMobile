@@ -39,9 +39,7 @@ function QuickActionCard({ title, onPress }: Props) {
     </TouchableOpacity>
   );
 }
-export default React.memo(
-  QuickActionCard,
-);
+export default React.memo(QuickActionCard);
 
 const styles = StyleSheet.create({
   card: {

@@ -1,7 +1,4 @@
-import axios, {
-  AxiosError,
-  AxiosRequestConfig,
-} from "axios";
+import axios, { AxiosError, AxiosRequestConfig } from "axios";
 
 import { API_BASE_URL } from "../constants/api";
 
@@ -12,12 +9,9 @@ import {
   removeTokens,
 } from "../storage/token.storage";
 
-import {
-  resetToLogin,
-} from "../navigation/RootNavigation";
+import { resetToLogin } from "../navigation/RootNavigation";
 
-interface RetryAxiosRequestConfig
-  extends AxiosRequestConfig {
+interface RetryAxiosRequestConfig extends AxiosRequestConfig {
   _retry?: boolean;
 }
 
@@ -33,19 +27,14 @@ let failedQueue: {
   reject: (error: unknown) => void;
 }[] = [];
 
-const processQueue = (
-  error: unknown,
-  token?: string
-) => {
-  failedQueue.forEach(
-    ({ resolve, reject }) => {
-      if (error) {
-        reject(error);
-      } else if (token) {
-        resolve(token);
-      }
+const processQueue = (error: unknown, token?: string) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error);
+    } else if (token) {
+      resolve(token);
     }
-  );
+  });
 
   failedQueue = [];
 };
@@ -58,139 +47,92 @@ const logoutUser = async () => {
   }, 0);
 };
 
-api.interceptors.request.use(
-  async (config) => {
-    const token = await getToken();
+api.interceptors.request.use(async (config) => {
+  const token = await getToken();
 
-    if (token) {
-      config.headers =
-        config.headers ?? {};
+  if (token) {
+    config.headers = config.headers ?? {};
 
-      config.headers.Authorization =
-        `Bearer ${token}`;
-    }
-
-    return config;
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
+
+  return config;
+});
 
 api.interceptors.response.use(
   (response) => response,
 
-  async (
-    error: AxiosError
-  ) => {
-    const originalRequest =
-      error.config as RetryAxiosRequestConfig;
+  async (error: AxiosError) => {
+    const originalRequest = error.config as RetryAxiosRequestConfig;
 
-    if (
-      originalRequest?.url?.includes(
-        "/auth/refresh-token"
-      )
-    ) {
+    if (originalRequest?.url?.includes("/auth/refresh-token")) {
       await logoutUser();
 
       return Promise.reject(error);
     }
 
     if (
-      error.response?.status ===
-        401 &&
+      error.response?.status === 401 &&
       originalRequest &&
       !originalRequest._retry
     ) {
-      originalRequest._retry =
-        true;
+      originalRequest._retry = true;
 
       if (isRefreshing) {
-        return new Promise<string>(
-          (
+        return new Promise<string>((resolve, reject) => {
+          failedQueue.push({
             resolve,
-            reject
-          ) => {
-            failedQueue.push({
-              resolve,
-              reject,
-            });
-          }
-        ).then(
-          (token) => {
-            originalRequest.headers =
-              originalRequest.headers ??
-              {};
+            reject,
+          });
+        }).then((token) => {
+          originalRequest.headers = originalRequest.headers ?? {};
 
-            originalRequest.headers.Authorization =
-              `Bearer ${token}`;
+          originalRequest.headers.Authorization = `Bearer ${token}`;
 
-            return api(
-              originalRequest
-            );
-          }
-        );
+          return api(originalRequest);
+        });
       }
 
       isRefreshing = true;
 
       try {
-        const refreshToken =
-          await getRefreshToken();
+        const refreshToken = await getRefreshToken();
 
         if (!refreshToken) {
           throw error;
         }
 
-        const response =
-          await axios.post(
-            `${API_BASE_URL}/auth/refresh-token`,
-            {
-              refreshToken,
-            }
-          );
-
-        const newAccessToken =
-          response.data.data
-            .accessToken;
-
-        await saveToken(
-          newAccessToken
+        const response = await axios.post(
+          `${API_BASE_URL}/auth/refresh-token`,
+          {
+            refreshToken,
+          },
         );
 
-        processQueue(
-          null,
-          newAccessToken
-        );
+        const newAccessToken = response.data.data.accessToken;
 
-        originalRequest.headers =
-          originalRequest.headers ??
-          {};
+        await saveToken(newAccessToken);
 
-        originalRequest.headers.Authorization =
-          `Bearer ${newAccessToken}`;
+        processQueue(null, newAccessToken);
 
-        return api(
-          originalRequest
-        );
-      } catch (
-        refreshError
-      ) {
-        processQueue(
-          refreshError
-        );
+        originalRequest.headers = originalRequest.headers ?? {};
+
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError);
 
         await logoutUser();
 
-        return Promise.reject(
-          refreshError
-        );
+        return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
       }
     }
 
-    return Promise.reject(
-      error
-    );
-  }
+    return Promise.reject(error);
+  },
 );
 
 export default api;

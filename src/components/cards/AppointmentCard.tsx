@@ -59,9 +59,7 @@ function AppointmentCard({ item, onPress }: Props) {
     </TouchableOpacity>
   );
 }
-export default React.memo(
-  AppointmentCard,
-);
+export default React.memo(AppointmentCard);
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "rgba(255,255,255,0.92)",

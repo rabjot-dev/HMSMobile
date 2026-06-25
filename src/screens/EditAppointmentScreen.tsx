@@ -24,7 +24,7 @@ import {
   getAppointmentById,
   getAvailableSlots,
   updateMyAppointment,
-  clearAppointmentCache
+  clearAppointmentCache,
 } from "../../src/services/appointment.service";
 
 export default function EditAppointment() {
@@ -117,7 +117,7 @@ export default function EditAppointment() {
           symptoms: symptoms ? [symptoms] : [],
         },
       );
-clearAppointmentCache();
+      clearAppointmentCache();
       Alert.alert(
         "Success",
 

@@ -112,28 +112,16 @@ export default function Register() {
           onPress: () => navigation.navigate("Login"),
         },
       ]);
-    } 
-      catch (error: any) {
+    } catch (error: any) {
+      console.log("REGISTER ERROR", error);
 
-  console.log(
-    "REGISTER ERROR",
-    error
-  );
+      console.log("REGISTER RESPONSE", error?.response?.data);
 
-  console.log(
-    "REGISTER RESPONSE",
-    error?.response?.data
-  );
-
-  Alert.alert(
-    "Registration Failed",
-    JSON.stringify(
-      error?.response?.data,
-      null,
-      2
-    )
-  );
-} finally {
+      Alert.alert(
+        "Registration Failed",
+        JSON.stringify(error?.response?.data, null, 2),
+      );
+    } finally {
       setLoading(false);
     }
   };

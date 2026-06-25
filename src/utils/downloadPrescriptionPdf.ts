@@ -1,21 +1,13 @@
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 
-import {
-  PrescriptionGroup,
-} from "../types/HealthRecord";
+import { PrescriptionGroup } from "../types/HealthRecord";
 
-export async function downloadPrescriptionPdf(
-  prescription: PrescriptionGroup,
-) {
+export async function downloadPrescriptionPdf(prescription: PrescriptionGroup) {
   try {
-    const medicinesHtml =
-      prescription.prescriptions
-        .map(
-          (
-            medicine,
-            index,
-          ) => `
+    const medicinesHtml = prescription.prescriptions
+      .map(
+        (medicine, index) => `
             <tr>
               <td>${index + 1}</td>
               <td>${medicine.medicineName}</td>
@@ -24,8 +16,8 @@ export async function downloadPrescriptionPdf(
               <td>${medicine.duration}</td>
             </tr>
           `,
-        )
-        .join("");
+      )
+      .join("");
 
     const html = `
       <html>
@@ -72,9 +64,7 @@ export async function downloadPrescriptionPdf(
             <strong>
               Date:
             </strong>
-            ${new Date(
-              prescription.date,
-            ).toLocaleDateString()}
+            ${new Date(prescription.date).toLocaleDateString()}
           </p>
 
           <p>
@@ -117,30 +107,17 @@ export async function downloadPrescriptionPdf(
       </html>
     `;
 
-    const result =
-      await Print.printToFileAsync({
-        html,
-      });
+    const result = await Print.printToFileAsync({
+      html,
+    });
 
-    if (
-      await Sharing.isAvailableAsync()
-    ) {
-      await Sharing.shareAsync(
-        result.uri,
-        {
-          mimeType:
-            "application/pdf",
-          dialogTitle:
-            "Share Prescription",
-        },
-      );
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(result.uri, {
+        mimeType: "application/pdf",
+        dialogTitle: "Share Prescription",
+      });
     }
-  } catch (
-    error
-  ) {
-    console.log(
-      "Prescription PDF Error",
-      error,
-    );
+  } catch (error) {
+    console.log("Prescription PDF Error", error);
   }
 }

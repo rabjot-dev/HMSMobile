@@ -63,9 +63,7 @@ function StatCard({ title, value }: Props) {
     </View>
   );
 }
-export default React.memo(
-  StatCard,
-);
+export default React.memo(StatCard);
 
 const styles = StyleSheet.create({
   card: {

@@ -8,18 +8,12 @@ import {
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useNavigation } from "@react-navigation/native";
 
 import { getDashboard } from "../../src/services/patient.service";
-import DashboardSkeleton
-from "../../src/components/loaders/DashboardSkeleton";
+import DashboardSkeleton from "../../src/components/loaders/DashboardSkeleton";
 import GlassCard from "../../src/components/cards/GlassCard";
 import StatCard from "../../src/components/cards/StatCard";
 import QuickActionCard from "../../src/components/cards/QuickActionCard";
@@ -31,117 +25,64 @@ export default function Dashboard() {
 
   const [loading, setLoading] = useState(true);
 
+  const loadDashboard = useCallback(async () => {
+    try {
+      setLoading(true);
 
-const loadDashboard =
-  useCallback(
-    async () => {
-      try {
-        setLoading(true);
+      const response = await getDashboard();
 
-        const response =
-          await getDashboard();
-
-        setDashboard(
-          response.data.data,
-        );
-      } catch (
-        error
-      ) {
-        console.log(
-          error,
-        );
-      } finally {
-        setLoading(
-          false,
-        );
-      }
-    },
-    [],
-  );
+      setDashboard(response.data.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
   useEffect(() => {
-  loadDashboard();
-}, [loadDashboard]);
+    loadDashboard();
+  }, [loadDashboard]);
 
-  const onRefresh =
-  useCallback(
-    async () => {
-      try {
-        setRefreshing(
-          true,
-        );
+  const onRefresh = useCallback(async () => {
+    try {
+      setRefreshing(true);
 
-        await loadDashboard();
-      } finally {
-        setRefreshing(
-          false,
-        );
-      }
-    },
-    [loadDashboard],
-  );
-  const goToBook =
-  useCallback(
-    () =>
-      navigation.navigate(
-        "BookAppointment",
-      ),
+      await loadDashboard();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [loadDashboard]);
+  const goToBook = useCallback(
+    () => navigation.navigate("BookAppointment"),
     [navigation],
   );
 
-const goToAppointments =
-  useCallback(
-    () =>
-      navigation.navigate(
-        "Appointments",
-      ),
+  const goToAppointments = useCallback(
+    () => navigation.navigate("Appointments"),
     [navigation],
   );
 
-const goToProfile =
-  useCallback(
-    () =>
-      navigation.navigate(
-        "Profile",
-      ),
+  const goToProfile = useCallback(
+    () => navigation.navigate("Profile"),
     [navigation],
   );
 
-const goToRecords =
-  useCallback(
-    () =>
-      navigation.navigate(
-        "HealthRecords",
-      ),
+  const goToRecords = useCallback(
+    () => navigation.navigate("HealthRecords"),
     [navigation],
   );
-  const goToUpcomingAppointment =
-  useCallback(
-    () => {
-      const id =
-        dashboard
-          ?.upcomingAppointment
-          ?._id;
+  const goToUpcomingAppointment = useCallback(() => {
+    const id = dashboard?.upcomingAppointment?._id;
 
-      if (!id) {
-        return;
-      }
+    if (!id) {
+      return;
+    }
 
-      navigation.navigate(
-        "AppointmentDetail",
-        {
-          id,
-        },
-      );
-    },
-    [
-      dashboard,
-      navigation,
-    ],
-  );
-  const greeting =
-  useMemo(() => {
-    const hour =
-      new Date().getHours();
+    navigation.navigate("AppointmentDetail", {
+      id,
+    });
+  }, [dashboard, navigation]);
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
 
     if (hour < 12) {
       return "Good Morning 👋";
@@ -154,37 +95,18 @@ const goToRecords =
     return "Good Evening 🌙";
   }, []);
 
-  const appointmentText =
-  useMemo(() => {
-    if (
-      !dashboard?.upcomingAppointment
-    ) {
+  const appointmentText = useMemo(() => {
+    if (!dashboard?.upcomingAppointment) {
       return "Upcoming Consultation";
     }
 
-    const today =
-      new Date();
+    const today = new Date();
 
-    const appointment =
-      new Date(
-        dashboard
-          .upcomingAppointment
-          .appointmentDate,
-      );
+    const appointment = new Date(dashboard.upcomingAppointment.appointmentDate);
 
-    const diff =
-      Math.ceil(
-        (
-          appointment.getTime() -
-          today.getTime()
-        ) /
-          (
-            1000 *
-            60 *
-            60 *
-            24
-          ),
-      );
+    const diff = Math.ceil(
+      (appointment.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+    );
 
     if (diff <= 0) {
       return "Today";
@@ -196,33 +118,23 @@ const goToRecords =
 
     return `In ${diff} days`;
   }, [dashboard]);
-if (loading) {
-  return (
-    <SafeAreaView
-      style={
-        styles.container
-      }
-    >
-      <DashboardSkeleton />
-    </SafeAreaView>
-  );
-}
-
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <DashboardSkeleton />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
-  showsVerticalScrollIndicator={false}
-  contentContainerStyle={
-    styles.scrollContent
-  }
-  refreshControl={
-    <RefreshControl
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-    />
-  }
->
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <View style={styles.hero}>
           <Text style={styles.greeting}>{greeting}</Text>
 
@@ -238,38 +150,14 @@ if (loading) {
         <Text style={styles.section}>Quick Actions</Text>
 
         <View style={styles.quickRow}>
-          <QuickActionCard
-            title="Book"
-           onPress={
-  goToBook
-}
-          />
+          <QuickActionCard title="Book" onPress={goToBook} />
 
-          <QuickActionCard
-            title="Appointments"
-            onPress={
-  goToAppointments
-}
-
-
-          />
+          <QuickActionCard title="Appointments" onPress={goToAppointments} />
         </View>
-      
 
         <View style={styles.quickRow}>
-          <QuickActionCard
-            title="Profile"
-            onPress={
-  goToProfile
-}
-          />
-<QuickActionCard
-  title="Records"
-
-onPress={
-  goToRecords
-}
-/>
+          <QuickActionCard title="Profile" onPress={goToProfile} />
+          <QuickActionCard title="Records" onPress={goToRecords} />
         </View>
 
         <Text style={styles.section}>Appointment Summary</Text>
@@ -298,87 +186,66 @@ onPress={
           />
         </View>
         <View
-  style={{
-    flexDirection: "row",
-    marginTop: 18,
-  }}
->
-  <TouchableOpacity
-    style={{
-      flex: 1,
-      backgroundColor:
-        "#2563EB",
-      padding: 12,
-      borderRadius: 12,
-      alignItems:
-        "center",
-      marginRight: 10,
-    }}
-    onPress={() => {
-  if (
-    dashboard?.upcomingAppointment
-      ?._id
-  ) {
-    navigation.navigate(
-      "AppointmentDetail",
-      {
-        id:
-          dashboard
-            .upcomingAppointment
-            ._id,
-      },
-    );
-  }
-}}
-  >
-    <Text
-      style={{
-        color: "#fff",
-        fontWeight:
-          "700",
-      }}
-    >
-      View
-    </Text>
-  </TouchableOpacity>
+          style={{
+            flexDirection: "row",
+            marginTop: 18,
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              backgroundColor: "#2563EB",
+              padding: 12,
+              borderRadius: 12,
+              alignItems: "center",
+              marginRight: 10,
+            }}
+            onPress={() => {
+              if (dashboard?.upcomingAppointment?._id) {
+                navigation.navigate("AppointmentDetail", {
+                  id: dashboard.upcomingAppointment._id,
+                });
+              }
+            }}
+          >
+            <Text
+              style={{
+                color: "#fff",
+                fontWeight: "700",
+              }}
+            >
+              View
+            </Text>
+          </TouchableOpacity>
 
-  <TouchableOpacity
-    style={{
-      flex: 1,
-      backgroundColor:
-        "#EFF6FF",
-      padding: 12,
-      borderRadius: 12,
-      alignItems:
-        "center",
-    }}
-    onPress={
-  goToAppointments
-}
-  >
-    <Text
-      style={{
-        color:
-          "#2563EB",
-        fontWeight:
-          "700",
-      }}
-    >
-      All Appointments
-    </Text>
-  </TouchableOpacity>
-</View>
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              backgroundColor: "#EFF6FF",
+              padding: 12,
+              borderRadius: 12,
+              alignItems: "center",
+            }}
+            onPress={goToAppointments}
+          >
+            <Text
+              style={{
+                color: "#2563EB",
+                fontWeight: "700",
+              }}
+            >
+              All Appointments
+            </Text>
+          </TouchableOpacity>
+        </View>
         <GlassCard>
-         <Text
-  style={{
-    color:
-      "#64748B",
-  }}
->
-  {
-    appointmentText
-  }
-</Text>
+          <Text
+            style={{
+              color: "#64748B",
+            }}
+          >
+            {appointmentText}
+          </Text>
 
           {dashboard?.upcomingAppointment ? (
             <View>
@@ -417,7 +284,9 @@ onPress={
                       fontSize: 16,
                     }}
                   >
-                    Dr. {dashboard?.upcomingAppointment?.doctorEmployeeId?.name || "Not Assigned"}
+                    Dr.{" "}
+                    {dashboard?.upcomingAppointment?.doctorEmployeeId?.name ||
+                      "Not Assigned"}
                   </Text>
 
                   <Text
@@ -536,7 +405,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "700",
   },
-    scrollContent: {
+  scrollContent: {
     paddingBottom: 120,
   },
 });

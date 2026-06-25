@@ -5,14 +5,11 @@ export const getMyHealthRecord = (
   labPage = 1,
   documentPage = 1,
 ) => {
-  return api.get(
-    "/health-records/me",
-    {
-      params: {
-        timelinePage,
-        labPage,
-        documentPage,
-      },
+  return api.get("/health-records/me", {
+    params: {
+      timelinePage,
+      labPage,
+      documentPage,
     },
-  );
+  });
 };

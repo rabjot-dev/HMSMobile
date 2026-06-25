@@ -4,7 +4,7 @@ import {
   TouchableOpacity,
   Alert,
   View,
-  StyleSheet 
+  StyleSheet,
 } from "react-native";
 
 import { useEffect, useState } from "react";
@@ -215,7 +215,8 @@ export default function EditProfile() {
       Alert.alert("Profile updated successfully");
       navigation.goBack();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to update profile";
+      const message =
+        error instanceof Error ? error.message : "Failed to update profile";
       Alert.alert("Failed to update profile", message);
     } finally {
       setLoading(false);

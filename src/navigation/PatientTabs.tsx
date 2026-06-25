@@ -86,10 +86,8 @@ export default function PatientTabs() {
             iconName = focused ? "person" : "person-outline";
           }
           if (route.name === "HealthRecords") {
-  iconName = focused
-    ? "medical"
-    : "medical-outline";
-}
+            iconName = focused ? "medical" : "medical-outline";
+          }
 
           return <Ionicons name={iconName} size={26} color={color} />;
         },
@@ -110,12 +108,12 @@ export default function PatientTabs() {
         }}
       />
       <Tab.Screen
-  name="HealthRecords"
-  component={HealthRecordsScreen}
-  options={{
-    tabBarLabel: "Records",
-  }}
-/>
+        name="HealthRecords"
+        component={HealthRecordsScreen}
+        options={{
+          tabBarLabel: "Records",
+        }}
+      />
 
       <Tab.Screen
         name="Profile"
@@ -125,6 +123,5 @@ export default function PatientTabs() {
         }}
       />
     </Tab.Navigator>
-    
   );
 }

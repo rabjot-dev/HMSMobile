@@ -1,11 +1,6 @@
 import React from "react";
 
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface Props {
   page: number;
@@ -24,73 +19,34 @@ export default function Pagination({
     return null;
   }
 
-  const isFirstPage =
-    page === 1;
+  const isFirstPage = page === 1;
 
-  const isLastPage =
-    page === totalPages;
+  const isLastPage = page === totalPages;
 
   return (
-    <View
-      style={
-        styles.container
-      }
-    >
+    <View style={styles.container}>
       <TouchableOpacity
-        disabled={
-          isFirstPage
-        }
-        activeOpacity={
-          0.7
-        }
-        onPress={
-          onPrevious
-        }
-        style={
-          styles.buttonContainer
-        }
+        disabled={isFirstPage}
+        activeOpacity={0.7}
+        onPress={onPrevious}
+        style={styles.buttonContainer}
       >
-        <Text
-          style={[
-            styles.button,
-            isFirstPage &&
-              styles.disabled,
-          ]}
-        >
+        <Text style={[styles.button, isFirstPage && styles.disabled]}>
           ← Previous
         </Text>
       </TouchableOpacity>
 
-      <Text
-        style={
-          styles.page
-        }
-      >
-        Page {page} of{" "}
-        {totalPages}
+      <Text style={styles.page}>
+        Page {page} of {totalPages}
       </Text>
 
       <TouchableOpacity
-        disabled={
-          isLastPage
-        }
-        activeOpacity={
-          0.7
-        }
-        onPress={
-          onNext
-        }
-        style={
-          styles.buttonContainer
-        }
+        disabled={isLastPage}
+        activeOpacity={0.7}
+        onPress={onNext}
+        style={styles.buttonContainer}
       >
-        <Text
-          style={[
-            styles.button,
-            isLastPage &&
-              styles.disabled,
-          ]}
-        >
+        <Text style={[styles.button, isLastPage && styles.disabled]}>
           Next →
         </Text>
       </TouchableOpacity>
@@ -98,43 +54,34 @@ export default function Pagination({
   );
 }
 
-const styles =
-  StyleSheet.create({
-    container: {
-      flexDirection:
-        "row",
-      justifyContent:
-        "space-between",
-      alignItems:
-        "center",
-      marginTop: 20,
-      paddingTop: 16,
-      borderTopWidth: 1,
-      borderTopColor:
-        "#E2E8F0",
-    },
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#E2E8F0",
+  },
 
-    buttonContainer: {
-      minWidth: 90,
-    },
+  buttonContainer: {
+    minWidth: 90,
+  },
 
-    button: {
-      color:
-        "#2563EB",
-      fontWeight:
-        "600",
-      fontSize: 15,
-    },
+  button: {
+    color: "#2563EB",
+    fontWeight: "600",
+    fontSize: 15,
+  },
 
-    disabled: {
-      opacity: 0.4,
-    },
+  disabled: {
+    opacity: 0.4,
+  },
 
-    page: {
-      color:
-        "#0F172A",
-      fontWeight:
-        "600",
-      fontSize: 14,
-    },
-  });
+  page: {
+    color: "#0F172A",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+});

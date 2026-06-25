@@ -1,10 +1,6 @@
 import React from "react";
 
-import {
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 interface Props {
   status: string;
@@ -18,57 +14,40 @@ const COLORS: Record<
   }
 > = {
   BOOKED: {
-    background:
-      "#DBEAFE",
-    color:
-      "#1D4ED8",
+    background: "#DBEAFE",
+    color: "#1D4ED8",
   },
 
   COMPLETED: {
-    background:
-      "#DCFCE7",
-    color:
-      "#15803D",
+    background: "#DCFCE7",
+    color: "#15803D",
   },
 
   CANCELLED: {
-    background:
-      "#FEE2E2",
-    color:
-      "#DC2626",
+    background: "#FEE2E2",
+    color: "#DC2626",
   },
 
   IN_CONSULTATION: {
-    background:
-      "#FEF3C7",
-    color:
-      "#D97706",
+    background: "#FEF3C7",
+    color: "#D97706",
   },
 
   NO_SHOW: {
-    background:
-      "#E2E8F0",
-    color:
-      "#475569",
+    background: "#E2E8F0",
+    color: "#475569",
   },
 };
 
-export default function StatusChip({
-  status,
-}: Props) {
-  const colors =
-    COLORS[
-      status
-    ] ??
-    COLORS.BOOKED;
+export default function StatusChip({ status }: Props) {
+  const colors = COLORS[status] ?? COLORS.BOOKED;
 
   return (
     <View
       style={[
         styles.container,
         {
-          backgroundColor:
-            colors.background,
+          backgroundColor: colors.background,
         },
       ]}
     >
@@ -76,36 +55,26 @@ export default function StatusChip({
         style={[
           styles.text,
           {
-            color:
-              colors.color,
+            color: colors.color,
           },
         ]}
       >
-        {status.replaceAll(
-          "_",
-          " ",
-        )}
+        {status.replaceAll("_", " ")}
       </Text>
     </View>
   );
 }
 
-const styles =
-  StyleSheet.create({
-    container: {
-      alignSelf:
-        "flex-start",
-      paddingHorizontal:
-        12,
-      paddingVertical:
-        6,
-      borderRadius:
-        14,
-    },
+const styles = StyleSheet.create({
+  container: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
 
-    text: {
-      fontSize: 12,
-      fontWeight:
-        "700",
-    },
-  });
+  text: {
+    fontSize: 12,
+    fontWeight: "700",
+  },
+});

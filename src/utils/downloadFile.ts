@@ -1,35 +1,16 @@
-import * as FileSystem
-from "expo-file-system/legacy";
-import * as Sharing
-from "expo-sharing";
+import * as FileSystem from "expo-file-system/legacy";
+import * as Sharing from "expo-sharing";
 
-export async function downloadFile(
-  url: string,
-  fileName: string,
-) {
+export async function downloadFile(url: string, fileName: string) {
   try {
-    const fileUri =
-      `${FileSystem.documentDirectory}${fileName}`;
+    const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
-    const result =
-      await FileSystem.downloadAsync(
-        url,
-        fileUri,
-      );
+    const result = await FileSystem.downloadAsync(url, fileUri);
 
-    if (
-      await Sharing.isAvailableAsync()
-    ) {
-      await Sharing.shareAsync(
-        result.uri,
-      );
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(result.uri);
     }
-  } catch (
-    error
-  ) {
-    console.log(
-      "Download Error",
-      error,
-    );
+  } catch (error) {
+    console.log("Download Error", error);
   }
 }
