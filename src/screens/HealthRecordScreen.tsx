@@ -27,6 +27,7 @@ import { downloadPrescriptionPdf } from "../utils/downloadPrescriptionPdf";
 import useHealthRecords from "../hooks/useHealthRecords";
 
 import {
+  Consultation,
   PrescriptionGroup,
   LabReport,
   MedicalDocument,
@@ -35,6 +36,12 @@ import {
 import { RootStackParamList } from "../types/navigation";
 import { openPdf } from "../utils/openPdf";
 import { downloadFile } from "../utils/downloadFile";
+
+type HealthRecordListItem =
+  | { type: "TIMELINE"; id: string; value: Consultation }
+  | { type: "PRESCRIPTIONS"; id: string; value: PrescriptionGroup }
+  | { type: "REPORTS"; id: string; value: LabReport }
+  | { type: "DOCUMENTS"; id: string; value: MedicalDocument };
 
 export default function HealthRecordScreen() {
   const navigation =
@@ -90,6 +97,38 @@ export default function HealthRecordScreen() {
     () => healthRecord?.medicalDocuments ?? [],
     [healthRecord],
   );
+
+  const activeRecords = useMemo<HealthRecordListItem[]>(() => {
+    if (activeTab === "TIMELINE") {
+      return consultations.map((consultation) => ({
+        type: "TIMELINE",
+        id: consultation._id,
+        value: consultation,
+      }));
+    }
+
+    if (activeTab === "PRESCRIPTIONS") {
+      return prescriptions.map((prescription) => ({
+        type: "PRESCRIPTIONS",
+        id: prescription.consultationId,
+        value: prescription,
+      }));
+    }
+
+    if (activeTab === "REPORTS") {
+      return reports.map((report) => ({
+        type: "REPORTS",
+        id: report._id,
+        value: report,
+      }));
+    }
+
+    return documents.map((document) => ({
+      type: "DOCUMENTS",
+      id: document._id,
+      value: document,
+    }));
+  }, [activeTab, consultations, documents, prescriptions, reports]);
 
   const handleViewPrescription = useCallback(
     (prescription: PrescriptionGroup) => {
@@ -205,6 +244,128 @@ export default function HealthRecordScreen() {
     timelinePage,
   ]);
 
+  const keyExtractor = useCallback((item: HealthRecordListItem) => item.id, []);
+
+  const emptyTitle = useMemo(() => {
+    if (activeTab === "TIMELINE") {
+      return "No consultations found";
+    }
+
+    if (activeTab === "PRESCRIPTIONS") {
+      return "No prescriptions found";
+    }
+
+    if (activeTab === "REPORTS") {
+      return "No reports found";
+    }
+
+    return "No documents found";
+  }, [activeTab]);
+
+  const renderHealthRecordItem = useCallback(
+    ({ item }: { item: HealthRecordListItem }) => {
+      if (item.type === "TIMELINE") {
+        return (
+          <View style={styles.listItem}>
+            <TimelineCard consultation={item.value} />
+          </View>
+        );
+      }
+
+      if (item.type === "PRESCRIPTIONS") {
+        return (
+          <View style={styles.listItem}>
+            <PrescriptionCard
+              item={item.value}
+              onView={handleViewPrescription}
+              onDownload={handleDownloadPrescription}
+            />
+          </View>
+        );
+      }
+
+      if (item.type === "REPORTS") {
+        return (
+          <View style={styles.listItem}>
+            <LabReportCard
+              report={item.value}
+              onView={handleViewReport}
+              onDownload={handleDownloadReport}
+            />
+          </View>
+        );
+      }
+
+      return (
+        <View style={styles.listItem}>
+          <MedicalDocumentCard
+            document={item.value}
+            onView={handleViewDocument}
+            onDownload={handleDownloadDocument}
+          />
+        </View>
+      );
+    },
+    [
+      handleDownloadDocument,
+      handleDownloadPrescription,
+      handleDownloadReport,
+      handleViewDocument,
+      handleViewPrescription,
+      handleViewReport,
+    ],
+  );
+
+  const listHeader = useMemo(
+    () => (
+      <>
+        <View style={styles.header}>
+          <Text style={styles.heading}>Health Records</Text>
+
+          <Text style={styles.subtitle}>
+            View consultations, prescriptions, reports and documents.
+          </Text>
+        </View>
+
+        <View style={styles.statsContainer}>
+          <View style={styles.statsRow}>
+            <StatCard
+              title="Visits"
+              value={healthRecord?.meta.consultations.totalRecords ?? 0}
+            />
+
+            <StatCard
+              title="Reports"
+              value={healthRecord?.meta.labReports.totalRecords ?? 0}
+            />
+
+            <StatCard
+              title="Documents"
+              value={healthRecord?.meta.medicalDocuments.totalRecords ?? 0}
+            />
+          </View>
+        </View>
+
+        <View style={styles.tabsContainer}>
+          <GlassCard>
+            <HealthRecordTabs activeTab={activeTab} onChange={setActiveTab} />
+          </GlassCard>
+        </View>
+      </>
+    ),
+    [activeTab, healthRecord],
+  );
+
+  const listFooter = useMemo(
+    () =>
+      loadingMore ? (
+        <View style={styles.loadingMoreContainer}>
+          <ActivityIndicator color="#2563EB" />
+        </View>
+      ) : null,
+    [loadingMore],
+  );
+
   if (loading && !healthRecord) {
     return (
       <View style={styles.container}>
@@ -227,10 +388,14 @@ export default function HealthRecordScreen() {
     <FlatList
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
-      data={["health-record-content"]}
-      keyExtractor={(item) => item}
+      data={activeRecords}
+      keyExtractor={keyExtractor}
       onEndReached={loadMoreRecords}
       onEndReachedThreshold={0.25}
+      initialNumToRender={5}
+      maxToRenderPerBatch={5}
+      windowSize={7}
+      removeClippedSubviews
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -238,114 +403,10 @@ export default function HealthRecordScreen() {
           tintColor="#2563EB"
         />
       }
-      renderItem={() => (
-        <>
-          <View style={styles.header}>
-            <Text style={styles.heading}>Health Records</Text>
-
-            <Text style={styles.subtitle}>
-              View consultations, prescriptions, reports and documents.
-            </Text>
-          </View>
-
-          <View style={styles.statsContainer}>
-            <View style={styles.statsRow}>
-              <StatCard
-                title="Visits"
-                value={healthRecord.meta.consultations.totalRecords}
-              />
-
-              <StatCard
-                title="Reports"
-                value={healthRecord.meta.labReports.totalRecords}
-              />
-
-              <StatCard
-                title="Documents"
-                value={healthRecord.meta.medicalDocuments.totalRecords}
-              />
-            </View>
-          </View>
-
-          <View style={styles.cardContainer}>
-            <GlassCard>
-              <HealthRecordTabs activeTab={activeTab} onChange={setActiveTab} />
-
-              {activeTab === "TIMELINE" && (
-                <>
-                  {healthRecord.consultations.length === 0 ? (
-                    <EmptyState title="No consultations found" />
-                  ) : (
-                    consultations.map((consultation) => (
-                      <TimelineCard
-                        key={consultation._id}
-                        consultation={consultation}
-                      />
-                    ))
-                  )}
-                </>
-              )}
-
-              {activeTab === "PRESCRIPTIONS" && (
-                <>
-                  {prescriptions.length === 0 ? (
-                    <EmptyState title="No prescriptions found" />
-                  ) : (
-                    prescriptions.map((item) => (
-                      <PrescriptionCard
-                        key={item.consultationId}
-                        item={item}
-                        onView={handleViewPrescription}
-                        onDownload={handleDownloadPrescription}
-                      />
-                    ))
-                  )}
-                </>
-              )}
-
-              {activeTab === "REPORTS" && (
-                <>
-                  {healthRecord.labReports.length === 0 ? (
-                    <EmptyState title="No reports found" />
-                  ) : (
-                    reports.map((report) => (
-                      <LabReportCard
-                        key={report._id}
-                        report={report}
-                        onView={handleViewReport}
-                        onDownload={handleDownloadReport}
-                      />
-                    ))
-                  )}
-                </>
-              )}
-
-              {activeTab === "DOCUMENTS" && (
-                <>
-                  {healthRecord.medicalDocuments.length === 0 ? (
-                    <EmptyState title="No documents found" />
-                  ) : (
-                    documents.map((document) => (
-                      <MedicalDocumentCard
-                        key={document._id}
-                        document={document}
-                        onView={handleViewDocument}
-                        onDownload={handleDownloadDocument}
-                      />
-                    ))
-                  )}
-                </>
-              )}
-
-              {loadingMore && (
-                <View style={styles.loadingMoreContainer}>
-                  <ActivityIndicator color="#2563EB" />
-                </View>
-              )}
-            </GlassCard>
-          </View>
-        </>
-      )}
+      ListHeaderComponent={listHeader}
+      ListEmptyComponent={!loading ? <EmptyState title={emptyTitle} /> : null}
+      renderItem={renderHealthRecordItem}
+      ListFooterComponent={listFooter}
     />
   );
 }
@@ -396,10 +457,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
-  cardContainer: {
+  tabsContainer: {
     marginHorizontal: 20,
     marginTop: 20,
-    marginBottom: 20,
+  },
+
+  listItem: {
+    marginHorizontal: 20,
   },
 
   emptyText: {
