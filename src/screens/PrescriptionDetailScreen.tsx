@@ -15,6 +15,7 @@ import GlassCard from "../components/cards/GlassCard";
 import { getPrescriptionById } from "../services/medical-record.service";
 import { getApiErrorMessage } from "../utils/api-error";
 import { formatDate, formatInfoValue } from "../utils/format";
+import { sharePrescriptionPdf } from "../utils/share-prescription-pdf";
 
 export default function PrescriptionDetailScreen() {
   const navigation = useNavigation<any>();
@@ -42,6 +43,15 @@ export default function PrescriptionDetailScreen() {
   useEffect(() => {
     loadPrescription();
   }, [loadPrescription]);
+
+  const downloadPrescription = async () => {
+    if (!prescription) {
+      Alert.alert("Prescription unavailable", "No prescription is loaded.");
+      return;
+    }
+
+    await sharePrescriptionPdf(prescription);
+  };
 
   if (loading) {
     return (
@@ -81,6 +91,13 @@ export default function PrescriptionDetailScreen() {
         <Text style={styles.subtitle}>
           {formatDate(prescription?.createdAt)}
         </Text>
+
+        <TouchableOpacity
+          style={styles.downloadButton}
+          onPress={downloadPrescription}
+        >
+          <Text style={styles.downloadButtonText}>Download PDF</Text>
+        </TouchableOpacity>
 
         <GlassCard>
           <Text style={styles.sectionTitle}>Consultation Details</Text>
@@ -177,6 +194,20 @@ const styles = StyleSheet.create({
 
   backButtonText: {
     color: "#2563EB",
+    fontWeight: "800",
+  },
+
+  downloadButton: {
+    alignSelf: "flex-start",
+    borderRadius: 16,
+    backgroundColor: "#2563EB",
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    marginBottom: 18,
+  },
+
+  downloadButtonText: {
+    color: "#FFFFFF",
     fontWeight: "800",
   },
 

@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,10 +12,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
 
 import GlassCard from "../components/cards/GlassCard";
-import { API_BASE_URL } from "../constants/api";
 import { getHealthRecordById } from "../services/medical-record.service";
 import { getApiErrorMessage } from "../utils/api-error";
+import { downloadFile } from "../utils/download-file";
+import { getFileUrl } from "../utils/file-url";
 import { formatDate, formatDocumentType, formatInfoValue } from "../utils/format";
+import { openDocumentFile } from "../utils/open-document";
 
 export default function HealthRecordDetailScreen() {
   const navigation = useNavigation<any>();
@@ -46,21 +47,46 @@ export default function HealthRecordDetailScreen() {
   }, [loadRecord]);
 
   const openDocument = async () => {
-    const documentUrl = getDocumentUrl(record);
+    const documentUrl = getFileUrl(record?.filePath);
 
     if (!documentUrl) {
       Alert.alert("Document unavailable", "No document is attached.");
       return;
     }
 
-    const canOpen = await Linking.canOpenURL(documentUrl);
+    await openDocumentFile(
+      documentUrl,
+      record.originalFileName || `${record.title || "medical-document"}.pdf`,
+      record.mimeType || "application/pdf",
+    );
+  };
 
-    if (!canOpen) {
-      Alert.alert("Unable to open", "This document cannot be opened.");
+  const downloadDocument = async () => {
+    const documentUrl = getFileUrl(record?.filePath);
+
+    if (!documentUrl) {
+      Alert.alert("Document unavailable", "No document is attached.");
       return;
     }
 
-    await Linking.openURL(documentUrl);
+    await downloadFile(
+      documentUrl,
+      record.originalFileName || `${record.title || "medical-document"}.pdf`,
+    );
+  };
+
+  const previewDocument = () => {
+    const documentUrl = getFileUrl(record?.filePath);
+
+    if (!documentUrl) {
+      Alert.alert("Document unavailable", "No document is attached.");
+      return;
+    }
+
+    navigation.navigate("PdfViewer", {
+      title: record.originalFileName || record.title || "Document",
+      url: documentUrl,
+    });
   };
 
   if (loading) {
@@ -112,9 +138,25 @@ export default function HealthRecordDetailScreen() {
           />
           <Info label="Notes" value={record.notes} />
 
-          <TouchableOpacity style={styles.openButton} onPress={openDocument}>
-            <Text style={styles.openButtonText}>Open Document</Text>
-          </TouchableOpacity>
+          <View style={styles.actions}>
+            <TouchableOpacity style={styles.primaryButton} onPress={openDocument}>
+              <Text style={styles.primaryButtonText}>Open</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={previewDocument}
+            >
+              <Text style={styles.secondaryButtonText}>Preview</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={downloadDocument}
+            >
+              <Text style={styles.secondaryButtonText}>Download</Text>
+            </TouchableOpacity>
+          </View>
         </GlassCard>
       </ScrollView>
     </SafeAreaView>
@@ -128,14 +170,6 @@ function Info({ label, value }: { label: string; value?: unknown }) {
       <Text style={styles.infoValue}>{formatInfoValue(value)}</Text>
     </View>
   );
-}
-
-function getDocumentUrl(record: any) {
-  if (!record?.filePath) {
-    return "";
-  }
-
-  return `${API_BASE_URL.replace("/api", "")}${record.filePath}`;
 }
 
 const styles = StyleSheet.create({
@@ -201,16 +235,35 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  openButton: {
+  actions: {
+    flexDirection: "row",
+    gap: 12,
     marginTop: 18,
+  },
+
+  primaryButton: {
+    flex: 1,
     borderRadius: 16,
     backgroundColor: "#2563EB",
     paddingVertical: 14,
     alignItems: "center",
   },
 
-  openButtonText: {
+  primaryButtonText: {
     color: "#FFFFFF",
+    fontWeight: "800",
+  },
+
+  secondaryButton: {
+    flex: 1,
+    borderRadius: 16,
+    backgroundColor: "#DBEAFE",
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+
+  secondaryButtonText: {
+    color: "#2563EB",
     fontWeight: "800",
   },
 

@@ -13,28 +13,32 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
-import { getAppointments } from "../../src/services/appointment.service";
-import { getApiErrorMessage } from "../../src/utils/api-error";
-
 import AppointmentCard from "../../src/components/cards/AppointmentCard";
+import EmptyState from "../components/common/EmptyState";
+import CardSkeleton from "../components/loaders/CardSkeleton";
+import { useAppointments } from "../hooks/useAppointments";
 
 const APPOINTMENT_FILTERS = ["ALL", "PENDING", "BOOKED", "COMPLETED", "CANCELLED"];
-const PAGE_LIMIT = 10;
 
 export default function Appointments() {
   const navigation = useNavigation<any>();
-  const [refreshing, setRefreshing] = useState(false);
-  const [appointments, setAppointments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("ALL");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
 
-  const hasMore = page < totalPages;
+  const {
+    appointments,
+    errorMessage,
+    loadAppointments,
+    loadMore,
+    loading,
+    loadingMore,
+    refresh,
+    refreshing,
+  } = useAppointments({
+    selectedFilter,
+    debouncedSearch,
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -43,60 +47,6 @@ export default function Appointments() {
 
     return () => clearTimeout(timer);
   }, [search]);
-
-  const loadAppointments = useCallback(
-    async (nextPage = 1, append = false, showLoader = true) => {
-      try {
-        if (append) {
-          setLoadingMore(true);
-        } else if (showLoader) {
-          setLoading(true);
-        }
-
-        setErrorMessage("");
-
-        const response = await getAppointments({
-          page: nextPage,
-          limit: PAGE_LIMIT,
-          status: selectedFilter === "ALL" ? undefined : selectedFilter,
-          search: debouncedSearch || undefined,
-        });
-
-        const records = response.data.data || [];
-        const meta = response.data.pagination || {};
-
-        setAppointments((currentAppointments) =>
-          append ? [...currentAppointments, ...records] : records,
-        );
-        setPage(meta.page || nextPage);
-        setTotalPages(meta.totalPages || 1);
-      } catch (error) {
-        setErrorMessage(
-          getApiErrorMessage(error, "Unable to load appointments"),
-        );
-      } finally {
-        setLoading(false);
-        setLoadingMore(false);
-      }
-    },
-    [debouncedSearch, selectedFilter],
-  );
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-
-    await loadAppointments(1, false, false);
-
-    setRefreshing(false);
-  }, [loadAppointments]);
-
-  const loadMoreAppointments = useCallback(() => {
-    if (!hasMore || loadingMore || loading) {
-      return;
-    }
-
-    loadAppointments(page + 1, true, false);
-  }, [hasMore, loadAppointments, loading, loadingMore, page]);
 
   useFocusEffect(
     useCallback(() => {
@@ -164,12 +114,10 @@ export default function Appointments() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View
-          style={{
-            padding: 20,
-          }}
-        >
-          <Text>Loading Appointments...</Text>
+        <View style={styles.skeletonList}>
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
         </View>
       </SafeAreaView>
     );
@@ -211,7 +159,7 @@ export default function Appointments() {
         />
         <FlatList
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl refreshing={refreshing} onRefresh={refresh} />
           }
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -227,7 +175,7 @@ export default function Appointments() {
 
       <FlatList
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} />
         }
         data={appointments}
         keyExtractor={(item) => item._id}
@@ -237,21 +185,18 @@ export default function Appointments() {
         initialNumToRender={8}
         maxToRenderPerBatch={8}
         windowSize={5}
-        onEndReached={loadMoreAppointments}
+        onEndReached={loadMore}
         onEndReachedThreshold={0.4}
         ListFooterComponent={listFooter}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>
-              {errorMessage || "No Appointments Yet"}
-            </Text>
-
-            <Text style={styles.emptyText}>
-              {errorMessage
+          <EmptyState
+            title={errorMessage || "No Appointments Yet"}
+            subtitle={
+              errorMessage
                 ? "Pull down to try again."
-                : "Start your healthcare journey by booking your first consultation."}
-            </Text>
-          </View>
+                : "Start your healthcare journey by booking your first consultation."
+            }
+          />
         }
         renderItem={renderAppointment}
       />
@@ -302,21 +247,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  emptyContainer: {
-    alignItems: "center",
-    marginTop: 100,
-  },
-
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-
-  emptyText: {
-    marginTop: 8,
-    color: "#64748B",
-    textAlign: "center",
+  skeletonList: {
+    paddingTop: 24,
   },
 
   footerLoader: {

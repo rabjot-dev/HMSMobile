@@ -5,117 +5,38 @@ import {
   RefreshControl,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
-import GlassCard from "../components/cards/GlassCard";
+import EmptyState from "../components/common/EmptyState";
+import CardSkeleton from "../components/loaders/CardSkeleton";
+import DocumentRecordCard from "../components/medical-records/DocumentRecordCard";
+import MedicalRecordTabs from "../components/medical-records/MedicalRecordTabs";
+import PrescriptionRecordCard from "../components/medical-records/PrescriptionRecordCard";
+import { useHealthRecords } from "../hooks/useHealthRecords";
 import {
-  getMyLabReports,
-  getMyHealthRecords,
-  getMyPrescriptions,
-} from "../services/medical-record.service";
-import { getApiErrorMessage } from "../utils/api-error";
-import { formatDate, formatDocumentType } from "../utils/format";
-
-type RecordTab = "PRESCRIPTIONS" | "HEALTH_RECORDS" | "LAB_REPORTS";
-
-const PAGE_LIMIT = 10;
+  DocumentRecord,
+  MedicalRecordTab,
+  PrescriptionRecord,
+} from "../types/MedicalRecord";
 
 export default function MedicalRecordsScreen() {
   const navigation = useNavigation<any>();
 
-  const [activeTab, setActiveTab] = useState<RecordTab>("PRESCRIPTIONS");
-  const [recordsByTab, setRecordsByTab] = useState<Record<RecordTab, any[]>>({
-    PRESCRIPTIONS: [],
-    HEALTH_RECORDS: [],
-    LAB_REPORTS: [],
-  });
-  const [pagesByTab, setPagesByTab] = useState<Record<RecordTab, number>>({
-    PRESCRIPTIONS: 1,
-    HEALTH_RECORDS: 1,
-    LAB_REPORTS: 1,
-  });
-  const [totalPagesByTab, setTotalPagesByTab] = useState<
-    Record<RecordTab, number>
-  >({
-    PRESCRIPTIONS: 1,
-    HEALTH_RECORDS: 1,
-    LAB_REPORTS: 1,
-  });
-  const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const activeRecords = recordsByTab[activeTab];
-  const hasMore = pagesByTab[activeTab] < totalPagesByTab[activeTab];
-
-  const loadRecords = useCallback(
-    async (tab = activeTab, nextPage = 1, append = false, showLoader = true) => {
-      try {
-        if (append) {
-          setLoadingMore(true);
-        } else if (showLoader) {
-          setLoading(true);
-        }
-
-        setErrorMessage("");
-
-        const params = {
-          page: nextPage,
-          limit: PAGE_LIMIT,
-        };
-
-        const response =
-          tab === "PRESCRIPTIONS"
-            ? await getMyPrescriptions(params)
-            : tab === "HEALTH_RECORDS"
-              ? await getMyHealthRecords(params)
-              : await getMyLabReports(params);
-
-        const records = response.data.data || [];
-        const meta = response.data.pagination || {};
-
-        setRecordsByTab((currentRecords) => ({
-          ...currentRecords,
-          [tab]: append ? [...currentRecords[tab], ...records] : records,
-        }));
-        setPagesByTab((currentPages) => ({
-          ...currentPages,
-          [tab]: meta.page || nextPage,
-        }));
-        setTotalPagesByTab((currentTotalPages) => ({
-          ...currentTotalPages,
-          [tab]: meta.totalPages || 1,
-        }));
-      } catch (error) {
-        setErrorMessage(
-          getApiErrorMessage(error, "Unable to load medical records"),
-        );
-      } finally {
-        setLoading(false);
-        setLoadingMore(false);
-      }
-    },
-    [activeTab],
-  );
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadRecords(activeTab, 1, false, false);
-    setRefreshing(false);
-  }, [activeTab, loadRecords]);
-
-  const loadMoreRecords = useCallback(() => {
-    if (!hasMore || loading || loadingMore) {
-      return;
-    }
-
-    loadRecords(activeTab, pagesByTab[activeTab] + 1, true, false);
-  }, [activeTab, hasMore, loadRecords, loading, loadingMore, pagesByTab]);
+  const [activeTab, setActiveTab] =
+    useState<MedicalRecordTab>("PRESCRIPTIONS");
+  const {
+    activeRecords,
+    errorMessage,
+    loadMore,
+    loadRecords,
+    loading,
+    loadingMore,
+    refresh,
+    refreshing,
+  } = useHealthRecords(activeTab);
 
   useFocusEffect(
     useCallback(() => {
@@ -123,59 +44,21 @@ export default function MedicalRecordsScreen() {
     }, [activeTab, loadRecords]),
   );
 
-  const changeTab = useCallback((tab: RecordTab) => {
+  const changeTab = useCallback((tab: MedicalRecordTab) => {
     setActiveTab(tab);
   }, []);
 
-  const renderPrescription = useCallback(
-    ({ item }: { item: any }) => (
-      <TouchableOpacity
-        activeOpacity={0.86}
-        onPress={() =>
-          navigation.navigate("PrescriptionDetail", { id: item._id })
-        }
-      >
-        <GlassCard>
-          <Text style={styles.cardTitle}>
-            Dr. {item?.doctorEmployeeId?.name || "Not available"}
-          </Text>
-
-          <Text style={styles.departmentText}>
-            {item?.doctorEmployeeId?.department || "Department not available"}
-          </Text>
-
-          <Text style={styles.cardDate}>{formatDate(item?.createdAt)}</Text>
-
-          <Text style={styles.openHint}>View full prescription</Text>
-        </GlassCard>
-      </TouchableOpacity>
-    ),
+  const openPrescription = useCallback(
+    (item: PrescriptionRecord) => {
+      navigation.navigate("PrescriptionDetail", { id: item._id });
+    },
     [navigation],
   );
 
-  const renderDocumentRecord = useCallback(
-    ({ item }: { item: any }) => (
-      <TouchableOpacity
-        activeOpacity={0.86}
-        onPress={() =>
-          navigation.navigate("HealthRecordDetail", { id: item._id })
-        }
-      >
-        <GlassCard>
-          <Text style={styles.cardTitle}>{item?.title || "Untitled record"}</Text>
-
-          <Text style={styles.departmentText}>
-            {formatDocumentType(item?.documentType)}
-          </Text>
-
-          <Text style={styles.cardDate}>
-            {formatDate(item?.documentDate || item?.createdAt)}
-          </Text>
-
-          <Text style={styles.openHint}>View document details</Text>
-        </GlassCard>
-      </TouchableOpacity>
-    ),
+  const openDocument = useCallback(
+    (item: DocumentRecord) => {
+      navigation.navigate("HealthRecordDetail", { id: item._id });
+    },
     [navigation],
   );
 
@@ -215,10 +98,23 @@ export default function MedicalRecordsScreen() {
     );
   }, [loadingMore]);
 
-  const renderActiveRecord =
-    activeTab === "PRESCRIPTIONS"
-      ? renderPrescription
-      : renderDocumentRecord;
+  const renderActiveRecord = useCallback(
+    ({ item }: { item: PrescriptionRecord | DocumentRecord }) => {
+      if (activeTab === "PRESCRIPTIONS") {
+        return (
+          <PrescriptionRecordCard
+            item={item as PrescriptionRecord}
+            onPress={openPrescription}
+          />
+        );
+      }
+
+      return (
+        <DocumentRecordCard item={item as DocumentRecord} onPress={openDocument} />
+      );
+    },
+    [activeTab, openDocument, openPrescription],
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -230,64 +126,13 @@ export default function MedicalRecordsScreen() {
         </Text>
       </View>
 
-      <View style={styles.tabs}>
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === "PRESCRIPTIONS" && styles.activeTab,
-          ]}
-          onPress={() => changeTab("PRESCRIPTIONS")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "PRESCRIPTIONS" && styles.activeTabText,
-            ]}
-          >
-            Prescriptions
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === "HEALTH_RECORDS" && styles.activeTab,
-          ]}
-          onPress={() => changeTab("HEALTH_RECORDS")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "HEALTH_RECORDS" && styles.activeTabText,
-            ]}
-          >
-            Health Records
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === "LAB_REPORTS" && styles.activeTab,
-          ]}
-          onPress={() => changeTab("LAB_REPORTS")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "LAB_REPORTS" && styles.activeTabText,
-            ]}
-          >
-            Lab Reports
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <MedicalRecordTabs activeTab={activeTab} onChange={changeTab} />
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator color="#2563EB" size="large" />
-
-          <Text style={styles.loadingText}>Loading medical records...</Text>
+        <View style={styles.skeletonList}>
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
         </View>
       ) : (
         <FlatList
@@ -296,20 +141,16 @@ export default function MedicalRecordsScreen() {
           renderItem={renderActiveRecord}
           contentContainerStyle={styles.listContent}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl refreshing={refreshing} onRefresh={refresh} />
           }
           initialNumToRender={8}
           maxToRenderPerBatch={8}
           windowSize={5}
-          onEndReached={loadMoreRecords}
+          onEndReached={loadMore}
           onEndReachedThreshold={0.4}
           ListFooterComponent={listFooter}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyTitle}>{emptyText}</Text>
-
-              <Text style={styles.emptySubtitle}>{emptySubtitle}</Text>
-            </View>
+            <EmptyState title={emptyText} subtitle={emptySubtitle} />
           }
         />
       )}
@@ -340,96 +181,13 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  tabs: {
-    flexDirection: "row",
-    marginHorizontal: 20,
-    marginTop: 20,
-    padding: 6,
-    borderRadius: 18,
-    backgroundColor: "#EAF1FF",
-  },
-
-  tabButton: {
-    flex: 1,
-    height: 46,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  activeTab: {
-    backgroundColor: "#2563EB",
-  },
-
-  tabText: {
-    color: "#475569",
-    fontWeight: "700",
-    fontSize: 12,
-    textAlign: "center",
-  },
-
-  activeTabText: {
-    color: "#FFFFFF",
-  },
-
   listContent: {
     padding: 20,
     paddingBottom: 120,
   },
 
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-  },
-
-  loadingText: {
-    color: "#64748B",
-    fontWeight: "700",
-  },
-
-  cardTitle: {
-    color: "#0F172A",
-    fontSize: 18,
-    fontWeight: "800",
-  },
-
-  cardDate: {
-    color: "#64748B",
-    marginTop: 8,
-  },
-
-  departmentText: {
-    color: "#2563EB",
-    fontWeight: "700",
-    marginTop: 6,
-  },
-
-  openHint: {
-    color: "#2563EB",
-    fontWeight: "800",
-    marginTop: 18,
-  },
-
-  emptyContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 40,
-    marginTop: 80,
-  },
-
-  emptyTitle: {
-    color: "#0F172A",
-    fontSize: 20,
-    fontWeight: "800",
-  },
-
-  emptySubtitle: {
-    color: "#64748B",
-    marginTop: 8,
-    textAlign: "center",
-    lineHeight: 22,
+  skeletonList: {
+    paddingTop: 20,
   },
 
   footerLoader: {

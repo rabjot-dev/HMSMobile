@@ -32,4 +32,9 @@ export type RootStackParamList = {
   HealthRecordDetail: {
     id: string;
   };
+
+  PdfViewer: {
+    title?: string;
+    url: string;
+  };
 };

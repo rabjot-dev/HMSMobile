@@ -9,6 +9,7 @@ import EditAppointment from "../screens/EditAppointmentScreen";
 import EditProfile from "../screens/EditProfileScreen";
 import PrescriptionDetail from "../screens/PrescriptionDetailScreen";
 import HealthRecordDetail from "../screens/HealthRecordDetailScreen";
+import PdfViewerScreen from "../screens/PdfViewerScreen";
 import { RootStackParamList } from "../types/navigation";
 import CreatePasswordScreen from "../screens/CreatePasswordScreen";
 import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
@@ -37,6 +38,7 @@ export default function AppNavigator() {
       <Stack.Screen name="EditProfile" component={EditProfile} />
       <Stack.Screen name="PrescriptionDetail" component={PrescriptionDetail} />
       <Stack.Screen name="HealthRecordDetail" component={HealthRecordDetail} />
+      <Stack.Screen name="PdfViewer" component={PdfViewerScreen} />
       <Stack.Screen name="CreatePassword" component={CreatePasswordScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     </Stack.Navigator>
