@@ -19,6 +19,8 @@ import { logout } from "../services/auth.service";
 import { removeTokens } from "../storage/token.storage";
 
 import { resetToLogin } from "../navigation/RootNavigation";
+import { clearAppointmentCache } from "../services/appointment.service";
+import { clearDoctorsCache } from "../services/employee.service";
 
 import GlassCard from "../components/cards/GlassCard";
 import ProfileInfoCard from "../components/cards/ProfileInfoCard";
@@ -100,6 +102,9 @@ export default function ProfileScreen() {
           try {
             await logout();
           } catch {}
+
+          clearAppointmentCache();
+          clearDoctorsCache();
 
           await removeTokens();
 

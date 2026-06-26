@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -152,6 +151,10 @@ export default function HealthRecordScreen() {
     },
     [],
   );
+  const onRefresh = useCallback(() => {
+    refresh(timelinePage, labPage, documentPage);
+  }, [timelinePage, labPage, documentPage, refresh]);
+
   if (loading && !healthRecord) {
     return (
       <View style={styles.container}>
@@ -169,9 +172,6 @@ export default function HealthRecordScreen() {
       </View>
     );
   }
-  const onRefresh = useCallback(() => {
-    refresh(timelinePage, labPage, documentPage);
-  }, [timelinePage, labPage, documentPage, refresh]);
 
   return (
     <ScrollView
@@ -263,16 +263,6 @@ export default function HealthRecordScreen() {
                   />
                 ))
               )}
-              <Pagination
-                page={labPage}
-                totalPages={healthRecord.meta.labReports.totalPages}
-                onPrevious={() => setLabPage((prev) => Math.max(1, prev - 1))}
-                onNext={() =>
-                  setLabPage((prev) =>
-                    Math.min(healthRecord.meta.labReports.totalPages, prev + 1),
-                  )
-                }
-              />
             </>
           )}
 
@@ -291,17 +281,12 @@ export default function HealthRecordScreen() {
                 ))
               )}
               <Pagination
-                page={documentPage}
-                totalPages={healthRecord.meta.medicalDocuments.totalPages}
-                onPrevious={() =>
-                  setDocumentPage((prev) => Math.max(1, prev - 1))
-                }
+                page={labPage}
+                totalPages={healthRecord.meta.labReports.totalPages}
+                onPrevious={() => setLabPage((prev) => Math.max(1, prev - 1))}
                 onNext={() =>
-                  setDocumentPage((prev) =>
-                    Math.min(
-                      healthRecord.meta.medicalDocuments.totalPages,
-                      prev + 1,
-                    ),
+                  setLabPage((prev) =>
+                    Math.min(healthRecord.meta.labReports.totalPages, prev + 1),
                   )
                 }
               />

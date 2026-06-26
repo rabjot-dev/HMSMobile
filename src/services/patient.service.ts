@@ -1,13 +1,7 @@
-import { getToken } from "../storage/token.storage";
 import api from "./api.service";
 
-export const getDashboard = async () => {
-  const token = await getToken();
+export const getDashboard = () => api.get("/patients/dashboard");
 
-  console.log("TOKEN", token);
-
-  return api.get("/patients/dashboard");
-};
 export const registerPatient = (data: any) =>
   api.post("/patients/register", data);
 export const getProfile = () => api.get("/patients/profile");

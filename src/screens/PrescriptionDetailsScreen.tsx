@@ -2,7 +2,7 @@ import React from "react";
 
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { Prescription, PrescriptionGroup } from "../types/HealthRecord";
+import { PrescriptionGroup } from "../types/HealthRecord";
 
 export default function PrescriptionDetailsScreen({ route }: any) {
   const {

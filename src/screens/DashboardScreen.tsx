@@ -4,7 +4,6 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Alert,
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -200,13 +199,7 @@ export default function Dashboard() {
               alignItems: "center",
               marginRight: 10,
             }}
-            onPress={() => {
-              if (dashboard?.upcomingAppointment?._id) {
-                navigation.navigate("AppointmentDetail", {
-                  id: dashboard.upcomingAppointment._id,
-                });
-              }
-            }}
+            onPress={goToUpcomingAppointment}
           >
             <Text
               style={{

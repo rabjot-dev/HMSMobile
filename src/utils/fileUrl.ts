@@ -9,5 +9,5 @@ export const getFileUrl = (path?: string) => {
     return path;
   }
 
-  return `${FILE_BASE_URL}${path}`;
+  return `${FILE_BASE_URL}/${path.replace(/^\/+/, "")}`;
 };

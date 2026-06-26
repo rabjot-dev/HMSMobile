@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosRequestConfig } from "axios";
+import axiosDefault, { AxiosError, AxiosRequestConfig, create } from "axios";
 
 import { API_BASE_URL } from "../constants/api";
 
@@ -10,12 +10,14 @@ import {
 } from "../storage/token.storage";
 
 import { resetToLogin } from "../navigation/RootNavigation";
+import { clearAppointmentCache } from "./appointment.service";
+import { clearDoctorsCache } from "./employee.service";
 
 interface RetryAxiosRequestConfig extends AxiosRequestConfig {
   _retry?: boolean;
 }
 
-const api = axios.create({
+const api = create({
   baseURL: API_BASE_URL,
   timeout: 15000,
 });
@@ -40,6 +42,9 @@ const processQueue = (error: unknown, token?: string) => {
 };
 
 const logoutUser = async () => {
+  clearAppointmentCache();
+  clearDoctorsCache();
+
   await removeTokens();
 
   setTimeout(() => {
@@ -102,7 +107,7 @@ api.interceptors.response.use(
           throw error;
         }
 
-        const response = await axios.post(
+        const response = await axiosDefault.post(
           `${API_BASE_URL}/auth/refresh-token`,
           {
             refreshToken,

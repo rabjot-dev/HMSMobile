@@ -4,7 +4,7 @@ import Dashboard from "../screens/DashboardScreen";
 
 import Appointments from "../screens/AppointmentScreen";
 
-import Profile from "../screens/ProfileScren";
+import Profile from "../screens/ProfileScreen";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 import HealthRecordsScreen from "../screens/HealthRecordScreen";
@@ -57,13 +57,14 @@ export default function PatientTabs() {
           paddingBottom: 8,
         },
 
-        tabBarLabelStyle: {
-          tabBarItemStyle: {
-            borderRadius: 20,
-            marginVertical: 8,
-          },
-          tabBarActiveBackgroundColor: "rgba(37,99,235,0.08)",
+        tabBarItemStyle: {
+          borderRadius: 20,
+          marginVertical: 8,
+        },
 
+        tabBarActiveBackgroundColor: "rgba(37,99,235,0.08)",
+
+        tabBarLabelStyle: {
           fontSize: 11,
 
           fontWeight: "700",

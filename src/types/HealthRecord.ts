@@ -102,13 +102,6 @@ export interface PrescriptionGroup {
 
   prescriptions: Prescription[];
 }
-export interface LabReport {
-  _id: string;
-}
-
-export interface MedicalDocument {
-  _id: string;
-}
 
 export interface HealthRecordDetails {
   patient: HealthRecordPatient;

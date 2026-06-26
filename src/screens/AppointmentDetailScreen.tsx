@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useRoute, useNavigation } from "@react-navigation/native";
 import AppointmentSkeleton from "../../src/components/loaders/AppointmentSkeleton";
@@ -32,10 +32,7 @@ export default function AppointmentDetails() {
   const [cancelling, setCancelling] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadAppointment();
-  }, []);
-  const loadAppointment = async () => {
+  const loadAppointment = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -47,7 +44,11 @@ export default function AppointmentDetails() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    loadAppointment();
+  }, [loadAppointment]);
   const confirmCancel = async () => {
     try {
       setCancelling(true);

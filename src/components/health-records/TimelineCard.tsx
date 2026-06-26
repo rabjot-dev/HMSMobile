@@ -13,8 +13,6 @@ interface Props {
 function TimelineCard({ consultation }: Props) {
   const doctor = consultation.doctorEmployeeId;
 
-  const vitals = consultation.vitals;
-
   return (
     <GlassCard>
       <View style={styles.header}>
