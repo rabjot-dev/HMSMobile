@@ -26,6 +26,77 @@ import AppInput from "../../src/components/inputs/AppInput";
 
 import ChipSelector from "../../src/components/selectors/ChipSelector";
 
+type ProfileErrors = Record<string, string>;
+
+const removeEmptyErrors = (errors: ProfileErrors) =>
+  Object.fromEntries(
+    Object.entries(errors).filter(([, message]) => Boolean(message)),
+  );
+
+const getDateOfBirthError = (value: string) => {
+  if (!value) {
+    return "Date of birth is required";
+  }
+
+  return futureDate(value) ? "Date of birth cannot be in future" : "";
+};
+
+const getRequiredSelectionError = (value: string, message: string) =>
+  value ? "" : message;
+
+const getAddressError = (value: string) => {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return "Address is required";
+  }
+
+  if (trimmedValue.length < 10) {
+    return "Minimum 10 characters required";
+  }
+
+  return maxLength(trimmedValue, 200)
+    ? ""
+    : "Maximum 200 characters allowed";
+};
+
+const getLettersFieldError = (
+  value: string,
+  requiredMessage: string,
+  maxLengthMessage: string,
+) => {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return requiredMessage;
+  }
+
+  if (!onlyLetters(value)) {
+    return "Only letters allowed";
+  }
+
+  return maxLength(trimmedValue, 50) ? "" : maxLengthMessage;
+};
+
+const getPincodeError = (value: string) => {
+  if (!value.trim()) {
+    return "Pincode is required";
+  }
+
+  return isPincode(value) ? "" : "Enter valid 6 digit pincode";
+};
+
+const getEmergencyPhoneError = (value: string) => {
+  if (!value.trim()) {
+    return "Phone number is required";
+  }
+
+  return isPhone(value) ? "" : "Enter valid phone number";
+};
+
+const toCommaSeparatedList = (value: string) =>
+  value ? value.split(",").map((item) => item.trim()) : [];
+
 export default function EditProfile() {
   const navigation = useNavigation<any>();
 
@@ -112,85 +183,46 @@ export default function EditProfile() {
   };
 
   const validateForm = () => {
-    const newErrors: any = {};
-
-    if (!dateOfBirth) {
-      newErrors.dateOfBirth = "Date of birth is required";
-    } else if (futureDate(dateOfBirth)) {
-      newErrors.dateOfBirth = "Date of birth cannot be in future";
-    }
-
-    if (!gender) {
-      newErrors.gender = "Please select gender";
-    }
-
-    if (!bloodGroup) {
-      newErrors.bloodGroup = "Please select blood group";
-    }
-
-    if (!maritalStatus) {
-      newErrors.maritalStatus = "Please select marital status";
-    }
-
-    if (!address.trim()) {
-      newErrors.address = "Address is required";
-    } else if (address.trim().length < 10) {
-      newErrors.address = "Minimum 10 characters required";
-    } else if (!maxLength(address.trim(), 200)) {
-      newErrors.address = "Maximum 200 characters allowed";
-    }
-
-    if (!city.trim()) {
-      newErrors.city = "City is required";
-    } else if (!onlyLetters(city)) {
-      newErrors.city = "Only letters allowed";
-    } else if (!maxLength(city.trim(), 50)) {
-      newErrors.city = "Maximum 50 characters allowed";
-    }
-
-    if (!state.trim()) {
-      newErrors.state = "State is required";
-    } else if (!onlyLetters(state)) {
-      newErrors.state = "Only letters allowed";
-    } else if (!maxLength(state.trim(), 50)) {
-      newErrors.state = "Maximum 50 characters allowed";
-    }
-
-    if (!country.trim()) {
-      newErrors.country = "Country is required";
-    } else if (!onlyLetters(country)) {
-      newErrors.country = "Only letters allowed";
-    } else if (!maxLength(country.trim(), 50)) {
-      newErrors.country = "Maximum 50 characters allowed";
-    }
-
-    if (!pincode.trim()) {
-      newErrors.pincode = "Pincode is required";
-    } else if (!isPincode(pincode)) {
-      newErrors.pincode = "Enter valid 6 digit pincode";
-    }
-
-    if (!emergencyContactName.trim()) {
-      newErrors.emergencyContactName = "Contact name is required";
-    } else if (!onlyLetters(emergencyContactName)) {
-      newErrors.emergencyContactName = "Only letters allowed";
-    } else if (!maxLength(emergencyContactName.trim(), 50)) {
-      newErrors.emergencyContactName = "Maximum 50 characters allowed";
-    }
-
-    if (!emergencyContactPhone.trim()) {
-      newErrors.emergencyContactPhone = "Phone number is required";
-    } else if (!isPhone(emergencyContactPhone)) {
-      newErrors.emergencyContactPhone = "Enter valid phone number";
-    }
-
-    if (!relationship.trim()) {
-      newErrors.relationship = "Relationship is required";
-    } else if (!onlyLetters(relationship)) {
-      newErrors.relationship = "Only letters allowed";
-    } else if (!maxLength(relationship.trim(), 50)) {
-      newErrors.relationship = "Maximum 50 characters allowed";
-    }
+    const newErrors = removeEmptyErrors({
+      dateOfBirth: getDateOfBirthError(dateOfBirth),
+      gender: getRequiredSelectionError(gender, "Please select gender"),
+      bloodGroup: getRequiredSelectionError(
+        bloodGroup,
+        "Please select blood group",
+      ),
+      maritalStatus: getRequiredSelectionError(
+        maritalStatus,
+        "Please select marital status",
+      ),
+      address: getAddressError(address),
+      city: getLettersFieldError(
+        city,
+        "City is required",
+        "Maximum 50 characters allowed",
+      ),
+      state: getLettersFieldError(
+        state,
+        "State is required",
+        "Maximum 50 characters allowed",
+      ),
+      country: getLettersFieldError(
+        country,
+        "Country is required",
+        "Maximum 50 characters allowed",
+      ),
+      pincode: getPincodeError(pincode),
+      emergencyContactName: getLettersFieldError(
+        emergencyContactName,
+        "Contact name is required",
+        "Maximum 50 characters allowed",
+      ),
+      emergencyContactPhone: getEmergencyPhoneError(emergencyContactPhone),
+      relationship: getLettersFieldError(
+        relationship,
+        "Relationship is required",
+        "Maximum 50 characters allowed",
+      ),
+    });
 
     setErrors(newErrors);
 
@@ -215,16 +247,10 @@ export default function EditProfile() {
         emergencyContactName: emergencyContactName.trim(),
         emergencyContactPhone,
         relationship: relationship.trim(),
-        allergies: allergies ? allergies.split(",").map((s) => s.trim()) : [],
-        chronicDiseases: chronicDiseases
-          ? chronicDiseases.split(",").map((s) => s.trim())
-          : [],
-        currentMedications: currentMedications
-          ? currentMedications.split(",").map((s) => s.trim())
-          : [],
-        pastSurgeries: pastSurgeries
-          ? pastSurgeries.split(",").map((s) => s.trim())
-          : [],
+        allergies: toCommaSeparatedList(allergies),
+        chronicDiseases: toCommaSeparatedList(chronicDiseases),
+        currentMedications: toCommaSeparatedList(currentMedications),
+        pastSurgeries: toCommaSeparatedList(pastSurgeries),
       });
 
       Alert.alert("Profile updated successfully");

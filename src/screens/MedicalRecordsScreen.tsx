@@ -22,6 +22,18 @@ import {
   PrescriptionRecord,
 } from "../types/MedicalRecord";
 
+const emptyMessages: Record<MedicalRecordTab, string> = {
+  PRESCRIPTIONS: "No prescriptions found",
+  HEALTH_RECORDS: "No health records found",
+  LAB_REPORTS: "No lab reports found",
+};
+
+const emptySubtitles: Record<MedicalRecordTab, string> = {
+  PRESCRIPTIONS: "Completed consultation prescriptions will appear here.",
+  HEALTH_RECORDS: "Uploaded health records will appear here.",
+  LAB_REPORTS: "Uploaded lab reports will appear here.",
+};
+
 export default function MedicalRecordsScreen() {
   const navigation = useNavigation<any>();
 
@@ -67,11 +79,7 @@ export default function MedicalRecordsScreen() {
       return errorMessage;
     }
 
-    return activeTab === "PRESCRIPTIONS"
-      ? "No prescriptions found"
-      : activeTab === "HEALTH_RECORDS"
-        ? "No health records found"
-        : "No lab reports found";
+    return emptyMessages[activeTab];
   }, [activeTab, errorMessage]);
 
   const emptySubtitle = useMemo(() => {
@@ -79,11 +87,7 @@ export default function MedicalRecordsScreen() {
       return "Pull down to try again.";
     }
 
-    return activeTab === "PRESCRIPTIONS"
-      ? "Completed consultation prescriptions will appear here."
-      : activeTab === "HEALTH_RECORDS"
-        ? "Uploaded health records will appear here."
-        : "Uploaded lab reports will appear here.";
+    return emptySubtitles[activeTab];
   }, [activeTab, errorMessage]);
 
   const listFooter = useMemo(() => {

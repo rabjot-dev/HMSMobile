@@ -24,6 +24,92 @@ import AppInput from "../components/inputs/AppInput";
 import PrimaryButton from "../components/buttons/PrimaryButton";
 import GlassCard from "../components/cards/GlassCard";
 
+type FormErrors = Record<string, string>;
+
+const removeEmptyErrors = (errors: FormErrors) =>
+  Object.fromEntries(
+    Object.entries(errors).filter(([, message]) => Boolean(message)),
+  );
+
+const getNameError = (value: string, label: string) => {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return `${label} is required`;
+  }
+
+  if (!onlyLetters(value)) {
+    return "Only letters allowed";
+  }
+
+  if (trimmedValue.length < 2) {
+    return "Minimum 2 characters required";
+  }
+
+  if (!maxLength(trimmedValue, 50)) {
+    return "Maximum 50 characters allowed";
+  }
+
+  return "";
+};
+
+const getEmailError = (value: string) => {
+  if (!value.trim()) {
+    return "Email is required";
+  }
+
+  return isEmail(value) ? "" : "Enter valid email address";
+};
+
+const getPhoneError = (value: string) => {
+  if (!value.trim()) {
+    return "Phone number is required";
+  }
+
+  return isPhone(value) ? "" : "Enter valid 10 digit mobile number";
+};
+
+const getPasswordError = (value: string) => {
+  if (!value.trim()) {
+    return "Password is required";
+  }
+
+  if (value.length > 20) {
+    return "Password must not exceed 20 characters";
+  }
+
+  return strongPassword(value)
+    ? ""
+    : "Must contain uppercase, lowercase, number & special character";
+};
+
+const getConfirmPasswordError = (password: string, confirmPassword: string) => {
+  if (!confirmPassword.trim()) {
+    return "Confirm password is required";
+  }
+
+  return password === confirmPassword ? "" : "Passwords do not match";
+};
+
+const getSecurityQuestionError = (value: string) =>
+  value ? "" : "Please select a security question";
+
+const getSecurityAnswerError = (value: string) => {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return "Security answer is required";
+  }
+
+  if (trimmedValue.length < 2) {
+    return "Security answer must contain at least 2 characters";
+  }
+
+  return trimmedValue.length > 100
+    ? "Security answer must not exceed 100 characters"
+    : "";
+};
+
 export default function Register() {
   const navigation = useNavigation<any>();
 
@@ -57,67 +143,16 @@ export default function Register() {
   ];
 
   const validateForm = () => {
-    const newErrors: any = {};
-
-    if (!firstName.trim()) {
-      newErrors.firstName = "First name is required";
-    } else if (!onlyLetters(firstName)) {
-      newErrors.firstName = "Only letters allowed";
-    } else if (firstName.trim().length < 2) {
-      newErrors.firstName = "Minimum 2 characters required";
-    } else if (!maxLength(firstName.trim(), 50)) {
-      newErrors.firstName = "Maximum 50 characters allowed";
-    }
-
-    if (!lastName.trim()) {
-      newErrors.lastName = "Last name is required";
-    } else if (!onlyLetters(lastName)) {
-      newErrors.lastName = "Only letters allowed";
-    } else if (lastName.trim().length < 2) {
-      newErrors.lastName = "Minimum 2 characters required";
-    } else if (!maxLength(lastName.trim(), 50)) {
-      newErrors.lastName = "Maximum 50 characters allowed";
-    }
-
-    if (!email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!isEmail(email)) {
-      newErrors.email = "Enter valid email address";
-    }
-
-    if (!phone.trim()) {
-      newErrors.phone = "Phone number is required";
-    } else if (!isPhone(phone)) {
-      newErrors.phone = "Enter valid 10 digit mobile number";
-    }
-
-    if (!password.trim()) {
-      newErrors.password = "Password is required";
-    } else if (password.length > 20) {
-      newErrors.password = "Password must not exceed 20 characters";
-    } else if (!strongPassword(password)) {
-      newErrors.password =
-        "Must contain uppercase, lowercase, number & special character";
-    }
-
-    if (!confirmPassword.trim()) {
-      newErrors.confirmPassword = "Confirm password is required";
-    } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-
-    if (!securityQuestion) {
-      newErrors.securityQuestion = "Please select a security question";
-    }
-
-    if (!securityAnswer.trim()) {
-      newErrors.securityAnswer = "Security answer is required";
-    } else if (securityAnswer.trim().length < 2) {
-      newErrors.securityAnswer =
-        "Security answer must contain at least 2 characters";
-    } else if (securityAnswer.trim().length > 100) {
-      newErrors.securityAnswer = "Security answer must not exceed 100 characters";
-    }
+    const newErrors = removeEmptyErrors({
+      firstName: getNameError(firstName, "First name"),
+      lastName: getNameError(lastName, "Last name"),
+      email: getEmailError(email),
+      phone: getPhoneError(phone),
+      password: getPasswordError(password),
+      confirmPassword: getConfirmPasswordError(password, confirmPassword),
+      securityQuestion: getSecurityQuestionError(securityQuestion),
+      securityAnswer: getSecurityAnswerError(securityAnswer),
+    });
 
     setErrors(newErrors);
 

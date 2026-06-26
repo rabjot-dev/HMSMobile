@@ -1,6 +1,6 @@
-projectKey=HMS-MOBILE_SPRINT_3
+projectKey=hmsmobile
 serverUrl=http://localhost:9000
 serverVersion=26.1.0.118079
-dashboardUrl=http://localhost:9000/dashboard?id=HMS-MOBILE_SPRINT_3
-ceTaskId=a368e09f-77ab-42f8-b5a0-e3516cd7ddf0
-ceTaskUrl=http://localhost:9000/api/ce/task?id=a368e09f-77ab-42f8-b5a0-e3516cd7ddf0
+dashboardUrl=http://localhost:9000/dashboard?id=hmsmobile
+ceTaskId=469c299d-127d-4a59-aaa1-59923295dd52
+ceTaskUrl=http://localhost:9000/api/ce/task?id=469c299d-127d-4a59-aaa1-59923295dd52

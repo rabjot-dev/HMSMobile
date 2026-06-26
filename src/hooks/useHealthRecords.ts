@@ -13,6 +13,11 @@ import {
 import { getApiErrorMessage } from "../utils/api-error";
 
 const PAGE_LIMIT = 10;
+const recordLoaders = {
+  PRESCRIPTIONS: getMyPrescriptions,
+  HEALTH_RECORDS: getMyHealthRecords,
+  LAB_REPORTS: getMyLabReports,
+};
 
 const createRecordState = () => ({
   PRESCRIPTIONS: [],
@@ -58,12 +63,8 @@ export const useHealthRecords = (activeTab: MedicalRecordTab) => {
           limit: PAGE_LIMIT,
         };
 
-        const response =
-          tab === "PRESCRIPTIONS"
-            ? await getMyPrescriptions(params)
-            : tab === "HEALTH_RECORDS"
-              ? await getMyHealthRecords(params)
-              : await getMyLabReports(params);
+        const loadRecordsForTab = recordLoaders[tab];
+        const response = await loadRecordsForTab(params);
 
         const records = response.data.data || [];
         const meta = response.data.pagination || {};

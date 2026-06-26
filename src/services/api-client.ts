@@ -67,7 +67,7 @@ apiClient.interceptors.response.use(
       originalRequest._retry ||
       originalRequest.url?.includes("/auth/refresh-token")
     ) {
-      return Promise.reject(error);
+      throw error;
     }
 
     try {
@@ -78,7 +78,7 @@ apiClient.interceptors.response.use(
       refreshPromise = null;
 
       if (!newAccessToken) {
-        return Promise.reject(error);
+        throw error;
       }
 
       originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -87,7 +87,7 @@ apiClient.interceptors.response.use(
     } catch (refreshError) {
       refreshPromise = null;
       await removeTokens();
-      return Promise.reject(refreshError);
+      throw refreshError;
     }
   },
 );
