@@ -1,4 +1,6 @@
 import api from "./api.service";
+import { registerCacheClear } from "./cache.service";
+
 let appointmentCache: Record<string, any> = {};
 
 export const getAppointments = async (
@@ -14,7 +16,7 @@ export const getAppointments = async (
     };
   }
 
-  const response = await api.get("/appointments", {
+  const response = await api.get("/appointments/my", {
     params: {
       page,
       limit: 5,
@@ -30,8 +32,11 @@ export const getAppointments = async (
 export const clearAppointmentCache = () => {
   appointmentCache = {};
 };
+
+registerCacheClear(clearAppointmentCache);
+
 export const getAppointmentById = (id: string) =>
-  api.get(`/appointments/${id}`);
+  api.get(`/appointments/my/${id}`);
 
 export const cancelMyAppointment = (id: string) =>
   api.patch(`/appointments/my/${id}/cancel`);

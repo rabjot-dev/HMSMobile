@@ -126,7 +126,6 @@ export default function Appointments() {
                 onChangeText={(text) => {
                   setSearch(text);
                   setPage(1);
-                  setSelectedFilter("ALL");
                 }}
                 style={styles.search}
               />

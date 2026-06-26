@@ -1,4 +1,6 @@
 import api from "./api.service";
+import { registerCacheClear } from "./cache.service";
+
 let doctorsCache: any[] | null = null;
 export const getDoctors = async () => {
   if (doctorsCache) {
@@ -18,3 +20,5 @@ export const getDoctors = async () => {
 export const clearDoctorsCache = () => {
   doctorsCache = null;
 };
+
+registerCacheClear(clearDoctorsCache);

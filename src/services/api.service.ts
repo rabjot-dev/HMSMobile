@@ -10,8 +10,7 @@ import {
 } from "../storage/token.storage";
 
 import { resetToLogin } from "../navigation/RootNavigation";
-import { clearAppointmentCache } from "./appointment.service";
-import { clearDoctorsCache } from "./employee.service";
+import { clearServiceCaches } from "./cache.service";
 
 interface RetryAxiosRequestConfig extends AxiosRequestConfig {
   _retry?: boolean;
@@ -42,8 +41,7 @@ const processQueue = (error: unknown, token?: string) => {
 };
 
 const logoutUser = async () => {
-  clearAppointmentCache();
-  clearDoctorsCache();
+  clearServiceCaches();
 
   await removeTokens();
 
