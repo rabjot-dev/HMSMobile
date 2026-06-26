@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ScrollView,
+  ActivityIndicator,
+  FlatList,
   StyleSheet,
   Text,
   View,
@@ -10,7 +11,6 @@ import {
 import { useNavigation } from "@react-navigation/native";
 
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import Pagination from "../components/common/Pagination";
 import GlassCard from "../components/cards/GlassCard";
 import StatCard from "../components/cards/StatCard";
 import EmptyState from "../components/common/EmptyState";
@@ -40,7 +40,7 @@ export default function HealthRecordScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const { healthRecord, loading, refreshing, loadHealthRecord, refresh } =
+  const { healthRecord, loading, refreshing, loadingMore, loadHealthRecord, refresh } =
     useHealthRecords();
   const [timelinePage, setTimelinePage] = useState(1);
 
@@ -50,14 +50,8 @@ export default function HealthRecordScreen() {
 
   const [activeTab, setActiveTab] = useState<HealthRecordTab>("TIMELINE");
   useEffect(() => {
-    setTimelinePage(1);
-    setLabPage(1);
-    setDocumentPage(1);
-  }, [activeTab]);
-
-  useEffect(() => {
-    loadHealthRecord(timelinePage, labPage, documentPage);
-  }, [timelinePage, labPage, documentPage, loadHealthRecord]);
+    loadHealthRecord(1, 1, 1);
+  }, [loadHealthRecord]);
   const prescriptions = useMemo(() => {
     return (
       healthRecord?.consultations
@@ -152,8 +146,64 @@ export default function HealthRecordScreen() {
     [],
   );
   const onRefresh = useCallback(() => {
-    refresh(timelinePage, labPage, documentPage);
-  }, [timelinePage, labPage, documentPage, refresh]);
+    setTimelinePage(1);
+    setLabPage(1);
+    setDocumentPage(1);
+    refresh(1, 1, 1);
+  }, [refresh]);
+
+  const loadMoreRecords = useCallback(() => {
+    if (!healthRecord || loading || loadingMore) {
+      return;
+    }
+
+    if (
+      (activeTab === "TIMELINE" || activeTab === "PRESCRIPTIONS") &&
+      timelinePage < healthRecord.meta.consultations.totalPages
+    ) {
+      const nextPage = timelinePage + 1;
+
+      setTimelinePage(nextPage);
+      loadHealthRecord(nextPage, labPage, documentPage, false, "consultations");
+      return;
+    }
+
+    if (
+      activeTab === "REPORTS" &&
+      labPage < healthRecord.meta.labReports.totalPages
+    ) {
+      const nextPage = labPage + 1;
+
+      setLabPage(nextPage);
+      loadHealthRecord(timelinePage, nextPage, documentPage, false, "labReports");
+      return;
+    }
+
+    if (
+      activeTab === "DOCUMENTS" &&
+      documentPage < healthRecord.meta.medicalDocuments.totalPages
+    ) {
+      const nextPage = documentPage + 1;
+
+      setDocumentPage(nextPage);
+      loadHealthRecord(
+        timelinePage,
+        labPage,
+        nextPage,
+        false,
+        "medicalDocuments",
+      );
+    }
+  }, [
+    activeTab,
+    documentPage,
+    healthRecord,
+    labPage,
+    loadHealthRecord,
+    loading,
+    loadingMore,
+    timelinePage,
+  ]);
 
   if (loading && !healthRecord) {
     return (
@@ -174,9 +224,13 @@ export default function HealthRecordScreen() {
   }
 
   return (
-    <ScrollView
+    <FlatList
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
+      data={["health-record-content"]}
+      keyExtractor={(item) => item}
+      onEndReached={loadMoreRecords}
+      onEndReachedThreshold={0.25}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -184,148 +238,115 @@ export default function HealthRecordScreen() {
           tintColor="#2563EB"
         />
       }
-    >
-      <View style={styles.header}>
-        <Text style={styles.heading}>Health Records</Text>
+      renderItem={() => (
+        <>
+          <View style={styles.header}>
+            <Text style={styles.heading}>Health Records</Text>
 
-        <Text style={styles.subtitle}>
-          View consultations, prescriptions, reports and documents.
-        </Text>
-      </View>
+            <Text style={styles.subtitle}>
+              View consultations, prescriptions, reports and documents.
+            </Text>
+          </View>
 
-      <View style={styles.statsContainer}>
-        <View style={styles.statsRow}>
-          <StatCard
-            title="Visits"
-            value={healthRecord.meta.consultations.totalRecords}
-          />
+          <View style={styles.statsContainer}>
+            <View style={styles.statsRow}>
+              <StatCard
+                title="Visits"
+                value={healthRecord.meta.consultations.totalRecords}
+              />
 
-          <StatCard
-            title="Reports"
-            value={healthRecord.meta.labReports.totalRecords}
-          />
+              <StatCard
+                title="Reports"
+                value={healthRecord.meta.labReports.totalRecords}
+              />
 
-          <StatCard
-            title="Documents"
-            value={healthRecord.meta.medicalDocuments.totalRecords}
-          />
-        </View>
-      </View>
+              <StatCard
+                title="Documents"
+                value={healthRecord.meta.medicalDocuments.totalRecords}
+              />
+            </View>
+          </View>
 
-      <View style={styles.cardContainer}>
-        <GlassCard>
-          <HealthRecordTabs activeTab={activeTab} onChange={setActiveTab} />
+          <View style={styles.cardContainer}>
+            <GlassCard>
+              <HealthRecordTabs activeTab={activeTab} onChange={setActiveTab} />
 
-          {activeTab === "TIMELINE" && (
-            <>
-              {healthRecord.consultations.length === 0 ? (
-                <EmptyState title="No consultations found" />
-              ) : (
+              {activeTab === "TIMELINE" && (
                 <>
-                  {consultations.map((consultation) => (
-                    <TimelineCard
-                      key={consultation._id}
-                      consultation={consultation}
-                    />
-                  ))}
-
-                  <Pagination
-                    page={timelinePage}
-                    totalPages={healthRecord.meta.consultations.totalPages}
-                    onPrevious={() =>
-                      setTimelinePage((prev) => Math.max(1, prev - 1))
-                    }
-                    onNext={() =>
-                      setTimelinePage((prev) =>
-                        Math.min(
-                          healthRecord.meta.consultations.totalPages,
-                          prev + 1,
-                        ),
-                      )
-                    }
-                  />
+                  {healthRecord.consultations.length === 0 ? (
+                    <EmptyState title="No consultations found" />
+                  ) : (
+                    consultations.map((consultation) => (
+                      <TimelineCard
+                        key={consultation._id}
+                        consultation={consultation}
+                      />
+                    ))
+                  )}
                 </>
               )}
-            </>
-          )}
 
-          {activeTab === "PRESCRIPTIONS" && (
-            <>
-              {prescriptions.length === 0 ? (
-                <EmptyState title="No prescriptions found" />
-              ) : (
-                prescriptions.map((item) => (
-                  <PrescriptionCard
-                    key={item.consultationId}
-                    item={item}
-                    onView={handleViewPrescription}
-                    onDownload={handleDownloadPrescription}
-                  />
-                ))
+              {activeTab === "PRESCRIPTIONS" && (
+                <>
+                  {prescriptions.length === 0 ? (
+                    <EmptyState title="No prescriptions found" />
+                  ) : (
+                    prescriptions.map((item) => (
+                      <PrescriptionCard
+                        key={item.consultationId}
+                        item={item}
+                        onView={handleViewPrescription}
+                        onDownload={handleDownloadPrescription}
+                      />
+                    ))
+                  )}
+                </>
               )}
-            </>
-          )}
 
-          {activeTab === "REPORTS" && (
-            <>
-              {healthRecord.labReports.length === 0 ? (
-                <EmptyState title="No reports found" />
-              ) : (
-                reports.map((report) => (
-                  <LabReportCard
-                    key={report._id}
-                    report={report}
-                    onView={handleViewReport}
-                    onDownload={handleDownloadReport}
-                  />
-                ))
+              {activeTab === "REPORTS" && (
+                <>
+                  {healthRecord.labReports.length === 0 ? (
+                    <EmptyState title="No reports found" />
+                  ) : (
+                    reports.map((report) => (
+                      <LabReportCard
+                        key={report._id}
+                        report={report}
+                        onView={handleViewReport}
+                        onDownload={handleDownloadReport}
+                      />
+                    ))
+                  )}
+                </>
               )}
-              <Pagination
-                page={labPage}
-                totalPages={healthRecord.meta.labReports.totalPages}
-                onPrevious={() => setLabPage((prev) => Math.max(1, prev - 1))}
-                onNext={() =>
-                  setLabPage((prev) =>
-                    Math.min(healthRecord.meta.labReports.totalPages, prev + 1),
-                  )
-                }
-              />
-            </>
-          )}
-          {activeTab === "DOCUMENTS" && (
-            <>
-              {healthRecord.medicalDocuments.length === 0 ? (
-                <EmptyState title="No documents found" />
-              ) : (
-                documents.map((document) => (
-                  <MedicalDocumentCard
-                    key={document._id}
-                    document={document}
-                    onView={handleViewDocument}
-                    onDownload={handleDownloadDocument}
-                  />
-                ))
+
+              {activeTab === "DOCUMENTS" && (
+                <>
+                  {healthRecord.medicalDocuments.length === 0 ? (
+                    <EmptyState title="No documents found" />
+                  ) : (
+                    documents.map((document) => (
+                      <MedicalDocumentCard
+                        key={document._id}
+                        document={document}
+                        onView={handleViewDocument}
+                        onDownload={handleDownloadDocument}
+                      />
+                    ))
+                  )}
+                </>
               )}
-              <Pagination
-                page={documentPage}
-                totalPages={healthRecord.meta.medicalDocuments.totalPages}
-                onPrevious={() =>
-                  setDocumentPage((prev) => Math.max(1, prev - 1))
-                }
-                onNext={() =>
-                  setDocumentPage((prev) =>
-                    Math.min(
-                      healthRecord.meta.medicalDocuments.totalPages,
-                      prev + 1,
-                    ),
-                  )
-                }
-              />
-            </>
-          )}
-        </GlassCard>
-      </View>
-    </ScrollView>
+
+              {loadingMore && (
+                <View style={styles.loadingMoreContainer}>
+                  <ActivityIndicator color="#2563EB" />
+                </View>
+              )}
+            </GlassCard>
+          </View>
+        </>
+      )}
+    />
   );
 }
 
@@ -387,5 +408,10 @@ const styles = StyleSheet.create({
     marginTop: 40,
     marginBottom: 20,
     fontSize: 16,
+  },
+
+  loadingMoreContainer: {
+    paddingVertical: 18,
+    alignItems: "center",
   },
 });

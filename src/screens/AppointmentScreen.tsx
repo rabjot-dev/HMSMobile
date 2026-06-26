@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
+  ActivityIndicator,
   FlatList,
   RefreshControl,
   ScrollView,
@@ -16,14 +17,20 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 
 import AppointmentCard from "../../src/components/cards/AppointmentCard";
-import Pagination from "../../src/components/common/Pagination";
 import useAppointments from "../../src/hooks/useAppointments";
 import CardSkeleton from "../../src/components/loaders/CardSkeleton";
 
 export default function Appointments() {
   const navigation = useNavigation<any>();
 
-  const { appointments, loading, refreshing, loadAppointments, refresh } =
+  const {
+    appointments,
+    loading,
+    refreshing,
+    loadingMore,
+    loadAppointments,
+    refresh,
+  } =
     useAppointments();
 
   const [page, setPage] = useState(1);
@@ -48,12 +55,37 @@ export default function Appointments() {
   }, [search]);
 
   useEffect(() => {
-    loadAppointments(page, debouncedSearch, selectedFilter);
-  }, [page, debouncedSearch, selectedFilter, loadAppointments]);
+    setPage(1);
+    loadAppointments(1, debouncedSearch, selectedFilter);
+  }, [debouncedSearch, selectedFilter, loadAppointments]);
 
   const onRefresh = useCallback(() => {
-    refresh(page, debouncedSearch, selectedFilter);
-  }, [page, debouncedSearch, selectedFilter, refresh]);
+    setPage(1);
+    refresh(1, debouncedSearch, selectedFilter);
+  }, [debouncedSearch, selectedFilter, refresh]);
+
+  const loadMoreAppointments = useCallback(() => {
+    if (!appointments || loading || loadingMore) {
+      return;
+    }
+
+    if (page >= appointments.meta.totalPages) {
+      return;
+    }
+
+    const nextPage = page + 1;
+
+    setPage(nextPage);
+    loadAppointments(nextPage, debouncedSearch, selectedFilter, false, true);
+  }, [
+    appointments,
+    debouncedSearch,
+    loadAppointments,
+    loading,
+    loadingMore,
+    page,
+    selectedFilter,
+  ]);
   const goToBookAppointment = useCallback(() => {
     navigation.navigate("BookAppointment");
   }, [navigation]);
@@ -95,6 +127,8 @@ export default function Appointments() {
         keyboardShouldPersistTaps="handled"
         data={appointmentData}
         keyExtractor={keyExtractor}
+        onEndReached={loadMoreAppointments}
+        onEndReachedThreshold={0.25}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -167,23 +201,9 @@ export default function Appointments() {
         }
         renderItem={renderAppointment}
         ListFooterComponent={
-          appointments && !refreshing ? (
-            <View
-              style={{
-                paddingHorizontal: 20,
-                paddingTop: 20,
-              }}
-            >
-              <Pagination
-                page={page}
-                totalPages={appointments.meta.totalPages}
-                onPrevious={() => setPage((prev) => Math.max(1, prev - 1))}
-                onNext={() =>
-                  setPage((prev) =>
-                    Math.min(appointments.meta.totalPages, prev + 1),
-                  )
-                }
-              />
+          loadingMore ? (
+            <View style={styles.loadingMoreContainer}>
+              <ActivityIndicator color="#2563EB" />
             </View>
           ) : null
         }
@@ -283,5 +303,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: "#64748B",
     textAlign: "center",
+  },
+
+  loadingMoreContainer: {
+    paddingVertical: 18,
+    alignItems: "center",
   },
 });
