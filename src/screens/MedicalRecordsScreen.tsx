@@ -34,7 +34,7 @@ const emptySubtitles: Record<MedicalRecordTab, string> = {
   LAB_REPORTS: "Uploaded lab reports will appear here.",
 };
 
-export default function MedicalRecordsScreen() {
+function MedicalRecordsScreen() {
   const navigation = useNavigation<any>();
 
   const [activeTab, setActiveTab] =
@@ -198,3 +198,5 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
   },
 });
+
+export default React.memo(MedicalRecordsScreen);

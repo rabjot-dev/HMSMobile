@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import debounce from "lodash.debounce";
 
 import AppointmentCard from "../../src/components/cards/AppointmentCard";
 import EmptyState from "../components/common/EmptyState";
@@ -20,7 +21,7 @@ import { useAppointments } from "../hooks/useAppointments";
 
 const APPOINTMENT_FILTERS = ["ALL", "PENDING", "BOOKED", "COMPLETED", "CANCELLED"];
 
-export default function Appointments() {
+function Appointments() {
   const navigation = useNavigation<any>();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -40,13 +41,21 @@ export default function Appointments() {
     debouncedSearch,
   });
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search.trim());
-    }, 350);
+  const updateDebouncedSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        setDebouncedSearch(value.trim());
+      }, 350),
+    [],
+  );
 
-    return () => clearTimeout(timer);
-  }, [search]);
+  useEffect(() => {
+    updateDebouncedSearch(search);
+
+    return () => {
+      updateDebouncedSearch.cancel();
+    };
+  }, [search, updateDebouncedSearch]);
 
   useFocusEffect(
     useCallback(() => {
@@ -255,3 +264,5 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
   },
 });
+
+export default React.memo(Appointments);
