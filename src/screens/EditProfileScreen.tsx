@@ -2,7 +2,6 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
-  Alert,
   View,
   StyleSheet,
 } from "react-native";
@@ -24,6 +23,7 @@ import PrimaryButton from "../../src/components/buttons/PrimaryButton";
 import AppInput from "../../src/components/inputs/AppInput";
 
 import ChipSelector from "../../src/components/selectors/ChipSelector";
+import { showToast } from "../services/toast.service";
 
 export default function EditProfile() {
   const navigation = useNavigation<any>();
@@ -106,7 +106,7 @@ export default function EditProfile() {
 
       setPastSurgeries(profile.pastSurgeries?.join(", ") || "");
     } catch {
-      Alert.alert("Failed to load profile");
+      showToast("Failed to load profile", "error");
     }
   };
 
@@ -212,12 +212,12 @@ export default function EditProfile() {
           : [],
       });
 
-      Alert.alert("Profile updated successfully");
+      showToast("Profile updated successfully", "success");
       navigation.goBack();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to update profile";
-      Alert.alert("Failed to update profile", message);
+      showToast(message, "error");
     } finally {
       setLoading(false);
     }

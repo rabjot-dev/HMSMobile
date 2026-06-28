@@ -1,7 +1,5 @@
 import api from "./api.service";
 
-import { getRefreshToken } from "../storage/token.storage";
-
 export const login = (email: string, password: string) => {
   return api.post("/auth/login", {
     loginId: email,
@@ -18,9 +16,5 @@ export const getCurrentUser = () => {
 };
 
 export const logout = async () => {
-  const refreshToken = await getRefreshToken();
-
-  return api.post("/auth/logout", {
-    refreshToken,
-  });
+  return api.post("/auth/logout");
 };

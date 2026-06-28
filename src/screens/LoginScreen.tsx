@@ -3,7 +3,6 @@ import { useState } from "react";
 import {
   View,
   Text,
-  Alert,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
@@ -14,11 +13,12 @@ import { useNavigation } from "@react-navigation/native";
 
 import { login } from "../services/auth.service";
 
-import { saveToken, saveRefreshToken } from "../storage/token.storage";
+import { saveToken } from "../storage/token.storage";
 import { isEmail } from "../utils/validators";
 import AppInput from "../components/inputs/AppInput";
 import PrimaryButton from "../components/buttons/PrimaryButton";
 import GlassCard from "../components/cards/GlassCard";
+import { showToast } from "../services/toast.service";
 
 export default function Login() {
   const navigation = useNavigation<any>();
@@ -65,11 +65,7 @@ export default function Login() {
 
       const accessToken = response.data.data.accessToken;
 
-      const refreshToken = response.data.data.refreshToken;
-
       await saveToken(accessToken);
-
-      await saveRefreshToken(refreshToken);
 
       if (loginResponse.user?.isFirstLogin) {
         navigation.replace("CreatePassword", {
@@ -81,10 +77,7 @@ export default function Login() {
 
       navigation.replace("PatientTabs");
     } catch (error: any) {
-      Alert.alert(
-        "Login Failed",
-        error?.response?.data?.message || "Unknown Error",
-      );
+      showToast(error?.response?.data?.message || "Login failed", "error");
     } finally {
       setLoading(false);
     }

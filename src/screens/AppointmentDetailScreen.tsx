@@ -2,7 +2,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert,
   ScrollView,
   StyleSheet,
 } from "react-native";
@@ -21,6 +20,8 @@ import {
 import GlassCard from "../../src/components/cards/GlassCard";
 import StatusBadge from "../../src/components/badges/StatusBadge";
 import InfoRow from "../../src/components/cards/InfoRow";
+import { showToast } from "../services/toast.service";
+import { confirmAction } from "../services/confirm.service";
 
 export default function AppointmentDetails() {
   const navigation = useNavigation<any>();
@@ -55,33 +56,28 @@ export default function AppointmentDetails() {
 
       await cancelMyAppointment(appointment._id);
 
-      Alert.alert("Success", "Appointment cancelled successfully");
+      showToast("Appointment cancelled successfully", "success");
       clearAppointmentCache();
       navigation.goBack();
     } catch (error) {
       console.log("Cancel Error", error);
 
-      Alert.alert("Error", "Failed to cancel appointment");
+      showToast("Failed to cancel appointment", "error");
     } finally {
       setCancelling(false);
     }
   };
-  const handleCancel = () => {
-    Alert.alert(
-      "Cancel Appointment",
-      "Are you sure you want to cancel this appointment?",
-      [
-        {
-          text: "No",
-          style: "cancel",
-        },
-        {
-          text: "Yes",
-          style: "destructive",
-          onPress: confirmCancel,
-        },
-      ],
-    );
+  const handleCancel = async () => {
+    const confirmed = await confirmAction({
+      title: "Cancel Appointment",
+      message: "Are you sure you want to cancel this appointment?",
+      confirmText: "Cancel Appointment",
+      destructive: true,
+    });
+
+    if (confirmed) {
+      confirmCancel();
+    }
   };
 
   if (loading) {

@@ -44,6 +44,7 @@ export default function useHealthRecords() {
           timelinePage,
           labPage,
           documentPage,
+          undefined,
         );
 
         const nextHealthRecord = response.data.data as HealthRecordDetails;

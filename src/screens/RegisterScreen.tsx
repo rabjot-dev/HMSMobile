@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   Text,
-  Alert,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -20,6 +19,7 @@ import {
 import AppInput from "../components/inputs/AppInput";
 import PrimaryButton from "../components/buttons/PrimaryButton";
 import GlassCard from "../components/cards/GlassCard";
+import { showToast } from "../services/toast.service";
 
 export default function Register() {
   const navigation = useNavigation<any>();
@@ -106,21 +106,14 @@ export default function Register() {
         confirmPassword,
       });
 
-      Alert.alert("Success", "Account created successfully", [
-        {
-          text: "OK",
-          onPress: () => navigation.navigate("Login"),
-        },
-      ]);
+      showToast("Account created successfully", "success");
+      navigation.navigate("Login");
     } catch (error: any) {
       console.log("REGISTER ERROR", error);
 
       console.log("REGISTER RESPONSE", error?.response?.data);
 
-      Alert.alert(
-        "Registration Failed",
-        JSON.stringify(error?.response?.data, null, 2),
-      );
+      showToast(error?.response?.data?.message || "Registration failed", "error");
     } finally {
       setLoading(false);
     }

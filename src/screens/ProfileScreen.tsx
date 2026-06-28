@@ -6,7 +6,6 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useState, useCallback } from "react";
@@ -24,6 +23,8 @@ import { clearDoctorsCache } from "../services/employee.service";
 
 import GlassCard from "../components/cards/GlassCard";
 import ProfileInfoCard from "../components/cards/ProfileInfoCard";
+import { showToast } from "../services/toast.service";
+import { confirmAction } from "../services/confirm.service";
 
 interface Profile {
   patientId?: string;
@@ -68,7 +69,7 @@ export default function ProfileScreen() {
     } catch (error) {
       console.log("PROFILE ERROR:", error);
 
-      Alert.alert("Error", "Unable to load profile.");
+      showToast("Unable to load profile.", "error");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -89,29 +90,28 @@ export default function ProfileScreen() {
     loadProfile(true);
   }, []);
 
-  const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Logout",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await logout();
-          } catch {}
+  const handleLogout = async () => {
+    const confirmed = await confirmAction({
+      title: "Logout",
+      message: "Are you sure you want to logout?",
+      confirmText: "Logout",
+      destructive: true,
+    });
 
-          clearAppointmentCache();
-          clearDoctorsCache();
+    if (!confirmed) {
+      return;
+    }
 
-          await removeTokens();
+    try {
+      await logout();
+    } catch {}
 
-          resetToLogin();
-        },
-      },
-    ]);
+    clearAppointmentCache();
+    clearDoctorsCache();
+
+    await removeTokens();
+
+    resetToLogin();
   };
 
   if (loading) {

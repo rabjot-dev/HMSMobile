@@ -4,6 +4,7 @@ import {
   FlatList,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
   RefreshControl,
 } from "react-native";
@@ -36,12 +37,21 @@ import {
 import { RootStackParamList } from "../types/navigation";
 import { openPdf } from "../utils/openPdf";
 import { downloadFile } from "../utils/downloadFile";
+import { getMyHealthRecord } from "../services/healthRecord.service";
+import { downloadHealthRecordPdf } from "../utils/downloadHealthRecordPdf";
+import { showToast } from "../services/toast.service";
 
 type HealthRecordListItem =
   | { type: "TIMELINE"; id: string; value: Consultation }
   | { type: "PRESCRIPTIONS"; id: string; value: PrescriptionGroup }
   | { type: "REPORTS"; id: string; value: LabReport }
   | { type: "DOCUMENTS"; id: string; value: MedicalDocument };
+
+const getTime = (value?: string) => {
+  const timestamp = new Date(value ?? 0).getTime();
+
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+};
 
 export default function HealthRecordScreen() {
   const navigation =
@@ -56,6 +66,7 @@ export default function HealthRecordScreen() {
   const [documentPage, setDocumentPage] = useState(1);
 
   const [activeTab, setActiveTab] = useState<HealthRecordTab>("TIMELINE");
+  const [downloadingRecord, setDownloadingRecord] = useState(false);
   useEffect(() => {
     loadHealthRecord(1, 1, 1);
   }, [loadHealthRecord]);
@@ -83,18 +94,31 @@ export default function HealthRecordScreen() {
           vitals: consultation.vitals,
 
           prescriptions: consultation.prescriptions,
-        })) ?? []
+        }))
+        .sort((a, b) => getTime(b.date) - getTime(a.date)) ?? []
     );
   }, [healthRecord]);
   const consultations = useMemo(
-    () => healthRecord?.consultations ?? [],
+    () =>
+      [...(healthRecord?.consultations ?? [])].sort(
+        (a, b) => getTime(b.createdAt) - getTime(a.createdAt),
+      ),
     [healthRecord],
   );
 
-  const reports = useMemo(() => healthRecord?.labReports ?? [], [healthRecord]);
+  const reports = useMemo(
+    () =>
+      [...(healthRecord?.labReports ?? [])].sort(
+        (a, b) => getTime(b.reportDate) - getTime(a.reportDate),
+      ),
+    [healthRecord],
+  );
 
   const documents = useMemo(
-    () => healthRecord?.medicalDocuments ?? [],
+    () =>
+      [...(healthRecord?.medicalDocuments ?? [])].sort(
+        (a, b) => getTime(b.recordDate) - getTime(a.recordDate),
+      ),
     [healthRecord],
   );
 
@@ -184,6 +208,24 @@ export default function HealthRecordScreen() {
     },
     [],
   );
+  const handleDownloadCompleteRecord = useCallback(async () => {
+    if (downloadingRecord) {
+      return;
+    }
+
+    try {
+      setDownloadingRecord(true);
+
+      const response = await getMyHealthRecord(1, 1, 1, 10000);
+      await downloadHealthRecordPdf(response.data.data);
+      showToast("Complete health record is ready to save or share.", "success");
+    } catch (error) {
+      console.log("Download health record error", error);
+      showToast("Unable to download complete health record.", "error");
+    } finally {
+      setDownloadingRecord(false);
+    }
+  }, [downloadingRecord]);
   const onRefresh = useCallback(() => {
     setTimelinePage(1);
     setLabPage(1);
@@ -320,7 +362,23 @@ export default function HealthRecordScreen() {
     () => (
       <>
         <View style={styles.header}>
-          <Text style={styles.heading}>Health Records</Text>
+          <View style={styles.headerRow}>
+            <Text style={styles.heading}>Health Records</Text>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleDownloadCompleteRecord}
+              disabled={downloadingRecord}
+              style={[
+                styles.downloadButton,
+                downloadingRecord && styles.downloadButtonDisabled,
+              ]}
+            >
+              <Text style={styles.downloadButtonText}>
+                {downloadingRecord ? "..." : "PDF"}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           <Text style={styles.subtitle}>
             View consultations, prescriptions, reports and documents.
@@ -353,7 +411,7 @@ export default function HealthRecordScreen() {
         </View>
       </>
     ),
-    [activeTab, healthRecord],
+    [activeTab, downloadingRecord, handleDownloadCompleteRecord, healthRecord],
   );
 
   const listFooter = useMemo(
@@ -404,7 +462,14 @@ export default function HealthRecordScreen() {
         />
       }
       ListHeaderComponent={listHeader}
-      ListEmptyComponent={!loading ? <EmptyState title={emptyTitle} /> : null}
+      ListEmptyComponent={
+        !loading ? (
+          <EmptyState
+            title={emptyTitle}
+            message="New items will appear here as your care team updates your record."
+          />
+        ) : null
+      }
       renderItem={renderHealthRecordItem}
       ListFooterComponent={listFooter}
     />
@@ -434,6 +499,13 @@ const styles = StyleSheet.create({
     paddingTop: 70,
   },
 
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+
   heading: {
     fontSize: 30,
     fontWeight: "800",
@@ -445,6 +517,25 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 15,
     lineHeight: 22,
+  },
+
+  downloadButton: {
+    minWidth: 54,
+    height: 38,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+    backgroundColor: "#2563EB",
+  },
+
+  downloadButtonDisabled: {
+    opacity: 0.6,
+  },
+
+  downloadButtonText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "800",
   },
 
   statsContainer: {

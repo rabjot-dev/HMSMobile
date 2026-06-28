@@ -4,13 +4,23 @@ import { API_BASE_URL } from "../constants/api";
 
 import {
   getToken,
-  getRefreshToken,
   saveToken,
   removeTokens,
 } from "../storage/token.storage";
 
 import { resetToLogin } from "../navigation/RootNavigation";
 import { clearServiceCaches } from "./cache.service";
+import { showToast } from "./toast.service";
+import {
+  cacheGetResponse,
+  enqueueOfflineRequest,
+  getCachedResponse,
+  getOfflineQueue,
+  isAuthUrl,
+  isFormDataBody,
+  isMutationMethod,
+  setOfflineQueue,
+} from "./offline.service";
 
 interface RetryAxiosRequestConfig extends AxiosRequestConfig {
   _retry?: boolean;
@@ -19,9 +29,11 @@ interface RetryAxiosRequestConfig extends AxiosRequestConfig {
 const api = create({
   baseURL: API_BASE_URL,
   timeout: 15000,
+  withCredentials: true,
 });
 
 let isRefreshing = false;
+let isReplayingOfflineQueue = false;
 
 let failedQueue: {
   resolve: (token: string) => void;
@@ -50,6 +62,44 @@ const logoutUser = async () => {
   }, 0);
 };
 
+const replayOfflineQueue = async () => {
+  if (isReplayingOfflineQueue) {
+    return;
+  }
+
+  const queue = await getOfflineQueue();
+
+  if (!queue.length) {
+    return;
+  }
+
+  isReplayingOfflineQueue = true;
+
+  try {
+    const remaining = [...queue];
+
+    while (remaining.length) {
+      const nextRequest = remaining[0];
+
+      await api.request({
+        method: nextRequest.method,
+        url: nextRequest.url,
+        params: nextRequest.params,
+        data: nextRequest.data,
+      });
+
+      remaining.shift();
+      await setOfflineQueue(remaining);
+    }
+
+    showToast("Offline changes synced successfully.", "success");
+  } catch {
+    showToast("Some offline changes could not sync yet.", "error");
+  } finally {
+    isReplayingOfflineQueue = false;
+  }
+};
+
 api.interceptors.request.use(async (config) => {
   const token = await getToken();
 
@@ -63,10 +113,59 @@ api.interceptors.request.use(async (config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  async (response) => {
+    await cacheGetResponse(response.config, response.data);
+
+    if (!isReplayingOfflineQueue) {
+      replayOfflineQueue();
+    }
+
+    return response;
+  },
 
   async (error: AxiosError) => {
     const originalRequest = error.config as RetryAxiosRequestConfig;
+
+    if (!error.response) {
+      showToast("You appear to be offline. Please check your connection.", "error");
+
+      const cached = await getCachedResponse(originalRequest);
+
+      if (cached) {
+        showToast("Offline mode: showing cached data.", "info");
+
+        return {
+          data: cached,
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: originalRequest,
+        };
+      }
+
+      if (
+        originalRequest &&
+        isMutationMethod(originalRequest.method) &&
+        !isAuthUrl(originalRequest.url) &&
+        !isFormDataBody(originalRequest.data)
+      ) {
+        await enqueueOfflineRequest(originalRequest);
+        showToast("Offline change queued. It will sync automatically.", "success");
+
+        return {
+          data: {
+            success: true,
+            statusCode: 202,
+            message: "Offline request queued",
+            data: null,
+          },
+          status: 202,
+          statusText: "Accepted",
+          headers: {},
+          config: originalRequest,
+        };
+      }
+    }
 
     if (originalRequest?.url?.includes("/auth/refresh-token")) {
       await logoutUser();
@@ -99,16 +198,11 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = await getRefreshToken();
-
-        if (!refreshToken) {
-          throw error;
-        }
-
         const response = await axiosDefault.post(
           `${API_BASE_URL}/auth/refresh-token`,
+          {},
           {
-            refreshToken,
+            withCredentials: true,
           },
         );
 

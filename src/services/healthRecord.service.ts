@@ -4,12 +4,14 @@ export const getMyHealthRecord = (
   timelinePage = 1,
   labPage = 1,
   documentPage = 1,
+  limit?: number,
 ) => {
   return api.get("/health-records/me", {
     params: {
       timelinePage,
       labPage,
       documentPage,
+      ...(limit ? { limit } : {}),
     },
   });
 };

@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  Alert,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -20,6 +19,7 @@ import { createPassword } from "../services/auth.service";
 import AppInput from "../components/inputs/AppInput";
 import GlassCard from "../components/cards/GlassCard";
 import PrimaryButton from "../components/buttons/PrimaryButton";
+import { showToast } from "../services/toast.service";
 
 export default function CreatePasswordScreen() {
   const route = useRoute<any>();
@@ -159,21 +159,12 @@ export default function CreatePasswordScreen() {
         securityAnswer,
       });
 
-      Alert.alert("Success", "Password created successfully", [
-        {
-          text: "OK",
-
-          onPress: () => navigation.replace("Login"),
-        },
-      ]);
+      showToast("Password created successfully", "success");
+      navigation.replace("Login");
     } catch (error: any) {
       console.log("CREATE PASSWORD ERROR", error?.response?.data);
 
-      Alert.alert(
-        "Error",
-
-        error?.response?.data?.message || "Failed to create password",
-      );
+      showToast(error?.response?.data?.message || "Failed to create password", "error");
     } finally {
       setLoading(false);
     }

@@ -16,6 +16,9 @@ export interface HealthRecordPatient {
   patientId: string;
   firstName: string;
   lastName: string;
+  gender?: string;
+  bloodGroup?: string;
+  phone?: string;
 }
 export interface ConsultationDoctor {
   _id: string;

@@ -3,7 +3,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   StyleSheet,
   View,
 } from "react-native";
@@ -28,6 +27,7 @@ import {
   clearAppointmentCache,
 } from "../../src/services/appointment.service";
 import { formatLocalDate } from "../../src/utils/date";
+import { showToast } from "../services/toast.service";
 
 export default function EditAppointment() {
   const navigation = useNavigation<any>();
@@ -63,7 +63,7 @@ export default function EditAppointment() {
 
       setSymptoms(data.symptoms?.[0] || "");
     } catch {
-      Alert.alert("Failed to load appointment");
+      showToast("Failed to load appointment", "error");
     }
   }, [id]);
 
@@ -74,7 +74,7 @@ export default function EditAppointment() {
   const loadSlots = async () => {
     try {
       if (!appointment || !appointmentDate) {
-        Alert.alert("Please select an appointment date");
+        showToast("Please select an appointment date", "error");
 
         return;
       }
@@ -87,7 +87,7 @@ export default function EditAppointment() {
 
       setSlots(response.data.data);
     } catch {
-      Alert.alert("Failed to load slots");
+      showToast("Failed to load slots", "error");
     }
   };
   const validateForm = () => {
@@ -133,25 +133,10 @@ export default function EditAppointment() {
         },
       );
       clearAppointmentCache();
-      Alert.alert(
-        "Success",
-
-        "Appointment updated successfully",
-
-        [
-          {
-            text: "OK",
-
-            onPress: () => navigation.goBack(),
-          },
-        ],
-      );
+      showToast("Appointment updated successfully", "success");
+      navigation.goBack();
     } catch (error: any) {
-      Alert.alert(
-        "Failed",
-
-        error?.response?.data?.message || "Update failed",
-      );
+      showToast(error?.response?.data?.message || "Update failed", "error");
     } finally {
       setSubmitting(false);
     }

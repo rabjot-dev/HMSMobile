@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { minLength } from "../../src/utils/validators";
@@ -24,6 +23,7 @@ import {
   clearAppointmentCache,
 } from "../../src/services/appointment.service";
 import { formatLocalDate } from "../../src/utils/date";
+import { showToast } from "../services/toast.service";
 
 export default function BookAppointment() {
   const navigation = useNavigation<any>();
@@ -55,7 +55,7 @@ export default function BookAppointment() {
     } catch (error) {
       console.log("DOCTOR ERROR", error);
 
-      Alert.alert("Failed to load doctors");
+      showToast("Failed to load doctors", "error");
     }
   };
 
@@ -68,7 +68,7 @@ export default function BookAppointment() {
   const loadSlots = async () => {
     try {
       if (!doctorId || !appointmentDate) {
-        Alert.alert("Please select doctor and date");
+        showToast("Please select doctor and date", "error");
 
         return;
       }
@@ -77,11 +77,9 @@ export default function BookAppointment() {
 
       setSlots(response.data.data);
     } catch (error: any) {
-      Alert.alert(
-        "Failed",
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to load slots",
+      showToast(
+        error.response?.data?.message || error.message || "Failed to load slots",
+        "error",
       );
     }
   };
@@ -137,15 +135,10 @@ export default function BookAppointment() {
       });
       clearAppointmentCache();
 
-      Alert.alert("Success", "Appointment request sent", [
-        {
-          text: "OK",
-
-          onPress: () => navigation.goBack(),
-        },
-      ]);
+      showToast("Appointment request sent", "success");
+      navigation.goBack();
     } catch (error: any) {
-      Alert.alert("Failed", error?.response?.data?.message || "Booking failed");
+      showToast(error?.response?.data?.message || "Booking failed", "error");
     } finally {
       setSubmitting(false);
     }
