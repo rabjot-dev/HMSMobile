@@ -25,9 +25,9 @@ export default function useHealthRecords() {
 
   const loadHealthRecord = useCallback(
     async (
-      timelinePage = 1,
-      labPage = 1,
-      documentPage = 1,
+      timelineCursor = "",
+      labCursor = "",
+      documentCursor = "",
       isRefresh = false,
       appendSection?: AppendSection,
     ) => {
@@ -41,9 +41,9 @@ export default function useHealthRecords() {
         }
 
         const response = await getMyHealthRecord(
-          timelinePage,
-          labPage,
-          documentPage,
+          timelineCursor,
+          labCursor,
+          documentCursor,
           undefined,
         );
 
@@ -74,6 +74,20 @@ export default function useHealthRecords() {
                     nextHealthRecord.medicalDocuments,
                   )
                 : current.medicalDocuments,
+            meta: {
+              consultations:
+                appendSection === "consultations"
+                  ? nextHealthRecord.meta.consultations
+                  : current.meta.consultations,
+              labReports:
+                appendSection === "labReports"
+                  ? nextHealthRecord.meta.labReports
+                  : current.meta.labReports,
+              medicalDocuments:
+                appendSection === "medicalDocuments"
+                  ? nextHealthRecord.meta.medicalDocuments
+                  : current.meta.medicalDocuments,
+            },
           };
         });
       } catch (error: any) {
@@ -90,8 +104,8 @@ export default function useHealthRecords() {
   );
 
   const refresh = useCallback(
-    (timelinePage = 1, labPage = 1, documentPage = 1) => {
-      loadHealthRecord(timelinePage, labPage, documentPage, true);
+    () => {
+      loadHealthRecord("", "", "", true);
     },
     [loadHealthRecord],
   );

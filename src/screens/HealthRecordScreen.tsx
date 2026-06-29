@@ -59,16 +59,10 @@ export default function HealthRecordScreen() {
 
   const { healthRecord, loading, refreshing, loadingMore, loadHealthRecord, refresh } =
     useHealthRecords();
-  const [timelinePage, setTimelinePage] = useState(1);
-
-  const [labPage, setLabPage] = useState(1);
-
-  const [documentPage, setDocumentPage] = useState(1);
-
   const [activeTab, setActiveTab] = useState<HealthRecordTab>("TIMELINE");
   const [downloadingRecord, setDownloadingRecord] = useState(false);
   useEffect(() => {
-    loadHealthRecord(1, 1, 1);
+    loadHealthRecord("", "", "");
   }, [loadHealthRecord]);
   const prescriptions = useMemo(() => {
     return (
@@ -216,7 +210,7 @@ export default function HealthRecordScreen() {
     try {
       setDownloadingRecord(true);
 
-      const response = await getMyHealthRecord(1, 1, 1, 10000);
+      const response = await getMyHealthRecord("", "", "", 10000);
       await downloadHealthRecordPdf(response.data.data);
       showToast("Complete health record is ready to save or share.", "success");
     } catch (error) {
@@ -227,10 +221,7 @@ export default function HealthRecordScreen() {
     }
   }, [downloadingRecord]);
   const onRefresh = useCallback(() => {
-    setTimelinePage(1);
-    setLabPage(1);
-    setDocumentPage(1);
-    refresh(1, 1, 1);
+    refresh();
   }, [refresh]);
 
   const loadMoreRecords = useCallback(() => {
@@ -240,50 +231,53 @@ export default function HealthRecordScreen() {
 
     if (
       (activeTab === "TIMELINE" || activeTab === "PRESCRIPTIONS") &&
-      timelinePage < healthRecord.meta.consultations.totalPages
+      healthRecord.meta.consultations.hasNextPage &&
+      healthRecord.meta.consultations.nextCursor
     ) {
-      const nextPage = timelinePage + 1;
-
-      setTimelinePage(nextPage);
-      loadHealthRecord(nextPage, labPage, documentPage, false, "consultations");
+      loadHealthRecord(
+        healthRecord.meta.consultations.nextCursor,
+        "",
+        "",
+        false,
+        "consultations",
+      );
       return;
     }
 
     if (
       activeTab === "REPORTS" &&
-      labPage < healthRecord.meta.labReports.totalPages
+      healthRecord.meta.labReports.hasNextPage &&
+      healthRecord.meta.labReports.nextCursor
     ) {
-      const nextPage = labPage + 1;
-
-      setLabPage(nextPage);
-      loadHealthRecord(timelinePage, nextPage, documentPage, false, "labReports");
+      loadHealthRecord(
+        "",
+        healthRecord.meta.labReports.nextCursor,
+        "",
+        false,
+        "labReports",
+      );
       return;
     }
 
     if (
       activeTab === "DOCUMENTS" &&
-      documentPage < healthRecord.meta.medicalDocuments.totalPages
+      healthRecord.meta.medicalDocuments.hasNextPage &&
+      healthRecord.meta.medicalDocuments.nextCursor
     ) {
-      const nextPage = documentPage + 1;
-
-      setDocumentPage(nextPage);
       loadHealthRecord(
-        timelinePage,
-        labPage,
-        nextPage,
+        "",
+        "",
+        healthRecord.meta.medicalDocuments.nextCursor,
         false,
         "medicalDocuments",
       );
     }
   }, [
     activeTab,
-    documentPage,
     healthRecord,
-    labPage,
     loadHealthRecord,
     loading,
     loadingMore,
-    timelinePage,
   ]);
 
   const keyExtractor = useCallback((item: HealthRecordListItem) => item.id, []);
@@ -389,17 +383,29 @@ export default function HealthRecordScreen() {
           <View style={styles.statsRow}>
             <StatCard
               title="Visits"
-              value={healthRecord?.meta.consultations.totalRecords ?? 0}
+              value={
+                healthRecord?.meta.consultations.totalRecords ??
+                healthRecord?.consultations.length ??
+                0
+              }
             />
 
             <StatCard
               title="Reports"
-              value={healthRecord?.meta.labReports.totalRecords ?? 0}
+              value={
+                healthRecord?.meta.labReports.totalRecords ??
+                healthRecord?.labReports.length ??
+                0
+              }
             />
 
             <StatCard
               title="Documents"
-              value={healthRecord?.meta.medicalDocuments.totalRecords ?? 0}
+              value={
+                healthRecord?.meta.medicalDocuments.totalRecords ??
+                healthRecord?.medicalDocuments.length ??
+                0
+              }
             />
           </View>
         </View>

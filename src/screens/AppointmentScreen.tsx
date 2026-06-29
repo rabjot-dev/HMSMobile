@@ -33,8 +33,6 @@ export default function Appointments() {
   } =
     useAppointments();
 
-  const [page, setPage] = useState(1);
-
   const [search, setSearch] = useState("");
 
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -55,13 +53,11 @@ export default function Appointments() {
   }, [search]);
 
   useEffect(() => {
-    setPage(1);
-    loadAppointments(1, debouncedSearch, selectedFilter);
+    loadAppointments("", debouncedSearch, selectedFilter);
   }, [debouncedSearch, selectedFilter, loadAppointments]);
 
   const onRefresh = useCallback(() => {
-    setPage(1);
-    refresh(1, debouncedSearch, selectedFilter);
+    refresh(debouncedSearch, selectedFilter);
   }, [debouncedSearch, selectedFilter, refresh]);
 
   const loadMoreAppointments = useCallback(() => {
@@ -69,21 +65,23 @@ export default function Appointments() {
       return;
     }
 
-    if (page >= appointments.meta.totalPages) {
+    if (!appointments.meta.hasNextPage || !appointments.meta.nextCursor) {
       return;
     }
 
-    const nextPage = page + 1;
-
-    setPage(nextPage);
-    loadAppointments(nextPage, debouncedSearch, selectedFilter, false, true);
+    loadAppointments(
+      appointments.meta.nextCursor,
+      debouncedSearch,
+      selectedFilter,
+      false,
+      true,
+    );
   }, [
     appointments,
     debouncedSearch,
     loadAppointments,
     loading,
     loadingMore,
-    page,
     selectedFilter,
   ]);
   const goToBookAppointment = useCallback(() => {
@@ -159,7 +157,6 @@ export default function Appointments() {
                 value={search}
                 onChangeText={(text) => {
                   setSearch(text);
-                  setPage(1);
                 }}
                 style={styles.search}
               />
@@ -169,8 +166,6 @@ export default function Appointments() {
                   <TouchableOpacity
                     key={item}
                     onPress={() => {
-                      setPage(1);
-
                       setSelectedFilter(item);
                     }}
                     style={[

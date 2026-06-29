@@ -4,11 +4,11 @@ import { registerCacheClear } from "./cache.service";
 let appointmentCache: Record<string, any> = {};
 
 export const getAppointments = async (
-  page = 1,
+  cursor = "",
   search = "",
   status = "ALL",
 ) => {
-  const key = `${page}-${search}-${status}`;
+  const key = `${cursor}-${search}-${status}`;
 
   if (appointmentCache[key]) {
     return {
@@ -18,7 +18,8 @@ export const getAppointments = async (
 
   const response = await api.get("/appointments/my", {
     params: {
-      page,
+      pagination: "cursor",
+      cursor,
       limit: 5,
       search,
       status,

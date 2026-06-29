@@ -1,8 +1,10 @@
 export interface PaginationMeta {
-  page: number;
   limit: number;
-  totalRecords: number;
-  totalPages: number;
+  nextCursor?: string | null;
+  hasNextPage: boolean;
+  page?: number;
+  totalRecords?: number;
+  totalPages?: number;
 }
 
 export interface HealthRecordMeta {

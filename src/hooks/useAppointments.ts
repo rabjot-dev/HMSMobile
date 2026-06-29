@@ -17,7 +17,7 @@ export default function useAppointments() {
 
   const loadAppointments = useCallback(
     async (
-      page = 1,
+      cursor = "",
       search = "",
       status = "ALL",
       isRefresh = false,
@@ -32,13 +32,12 @@ export default function useAppointments() {
           setLoading(true);
         }
 
-        const response = await getAppointments(page, search, status);
+        const response = await getAppointments(cursor, search, status);
         const nextData = response.data.data ?? [];
         const nextMeta = response.data.meta ?? {
-          page: 1,
           limit: 5,
-          totalRecords: 0,
-          totalPages: 1,
+          nextCursor: null,
+          hasNextPage: false,
         };
 
         setAppointments((current) => {
@@ -73,8 +72,8 @@ export default function useAppointments() {
   );
 
   const refresh = useCallback(
-    (page = 1, search = "", status = "ALL") => {
-      loadAppointments(page, search, status, true);
+    (search = "", status = "ALL") => {
+      loadAppointments("", search, status, true);
     },
     [loadAppointments],
   );
