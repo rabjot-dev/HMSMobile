@@ -5,6 +5,7 @@ import { resetToLogin } from "../navigation/RootNavigation";
 import { clearServiceCaches } from "./cache.service";
 import { showToast } from "./toast.service";
 import { setOfflineStatus } from "./offline-status.service";
+import { logger } from "../utils/logger";
 import {
   cacheGetResponse,
   enqueueOfflineRequest,
@@ -87,7 +88,9 @@ const replayOfflineQueue = async () => {
     }
 
     showToast("Offline changes synced successfully.", "success");
-  } catch {
+    logger.info("Offline queue synced", { syncedRequests: queue.length });
+  } catch (error) {
+    logger.warn("Offline queue sync failed", { error });
     showToast("Some offline changes could not sync yet.", "error");
   } finally {
     isReplayingOfflineQueue = false;
@@ -123,6 +126,10 @@ api.interceptors.response.use(
 
     if (!error.response) {
       setOfflineStatus(true);
+      logger.warn("Network request failed while offline", {
+        method: originalRequest?.method,
+        url: originalRequest?.url,
+      });
       showToast(
         "You appear to be offline. Please check your connection.",
         "error",
@@ -170,6 +177,7 @@ api.interceptors.response.use(
     }
 
     if (originalRequest?.url?.includes("/auth/refresh-token")) {
+      logger.warn("Refresh token request failed");
       await logoutUser();
 
       return Promise.reject(error);
@@ -220,6 +228,7 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
+        logger.warn("Token refresh failed", { error: refreshError });
         processQueue(refreshError);
 
         await logoutUser();
@@ -229,6 +238,12 @@ api.interceptors.response.use(
         isRefreshing = false;
       }
     }
+
+    logger.error("API request failed", error, {
+      method: originalRequest?.method,
+      url: originalRequest?.url,
+      status: error.response?.status,
+    });
 
     return Promise.reject(error);
   },
