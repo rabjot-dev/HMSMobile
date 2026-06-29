@@ -10,7 +10,8 @@ export default function OfflineBanner({ compact = false }: OfflineBannerProps) {
     <View style={[styles.banner, compact && styles.compact]}>
       <Text style={styles.title}>Offline mode</Text>
       <Text style={styles.message}>
-        Showing saved data when available. New changes will sync after reconnecting.
+        Showing saved data when available. New changes will sync after
+        reconnecting.
       </Text>
     </View>
   );

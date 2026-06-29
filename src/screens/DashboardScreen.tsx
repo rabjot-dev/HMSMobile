@@ -8,9 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-
 import { useNavigation } from "@react-navigation/native";
-
 import { getDashboard } from "../../src/services/patient.service";
 import DashboardSkeleton from "../../src/components/loaders/DashboardSkeleton";
 import OfflineBanner from "../../src/components/common/OfflineBanner";
@@ -325,26 +323,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F4F7FC",
   },
-
   hero: {
     backgroundColor: "#2563EB",
     padding: 24,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
-
   greeting: {
     color: "#DBEAFE",
     fontSize: 16,
   },
-
   name: {
     fontSize: 30,
     fontWeight: "800",
     color: "#fff",
     marginTop: 5,
   },
-
   patientBadge: {
     marginTop: 12,
     alignSelf: "flex-start",
@@ -353,49 +347,40 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
   },
-
   badgeText: {
     color: "#fff",
   },
-
   section: {
     fontSize: 18,
     fontWeight: "700",
     margin: 20,
     color: "#0F172A",
   },
-
   quickRow: {
     flexDirection: "row",
     paddingHorizontal: 14,
   },
-
   statsRow: {
     flexDirection: "row",
     paddingHorizontal: 14,
     gap: 10,
   },
-
   cardTitle: {
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 15,
   },
-
   info: {
     fontSize: 15,
     marginBottom: 8,
   },
-
   empty: {
     color: "#64748B",
   },
-
   journeyText: {
     color: "#64748B",
     lineHeight: 22,
   },
-
   bookButton: {
     marginTop: 20,
     backgroundColor: "#2563EB",
@@ -403,7 +388,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: "center",
   },
-
   bookText: {
     color: "#fff",
     fontWeight: "700",

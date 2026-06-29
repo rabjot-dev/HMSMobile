@@ -1,14 +1,7 @@
 import { useState } from "react";
-import {
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
+import { Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import { useNavigation } from "@react-navigation/native";
-
 import { registerPatient } from "../services/patient.service";
 import {
   isEmail,
@@ -113,7 +106,10 @@ export default function Register() {
 
       console.log("REGISTER RESPONSE", error?.response?.data);
 
-      showToast(error?.response?.data?.message || "Registration failed", "error");
+      showToast(
+        error?.response?.data?.message || "Registration failed",
+        "error",
+      );
     } finally {
       setLoading(false);
     }
@@ -242,7 +238,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#F4F7FC",
     paddingHorizontal: 20,
   },
-
   brand: {
     fontSize: 34,
     fontWeight: "800",
@@ -250,7 +245,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 30,
   },
-
   tagline: {
     fontSize: 18,
     fontWeight: "600",
@@ -258,21 +252,18 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 8,
   },
-
   description: {
     textAlign: "center",
     color: "#64748B",
     marginTop: 10,
     marginBottom: 30,
   },
-
   loginText: {
     textAlign: "center",
     marginTop: 24,
     marginBottom: 30,
     color: "#64748B",
   },
-
   loginLink: {
     color: "#2563EB",
     fontWeight: "700",

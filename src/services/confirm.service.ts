@@ -26,7 +26,10 @@ export const confirmAction = (options: ConfirmOptions) =>
     );
   });
 
-export const closeConfirm = (state: ConfirmState | null, confirmed: boolean) => {
+export const closeConfirm = (
+  state: ConfirmState | null,
+  confirmed: boolean,
+) => {
   if (state) {
     state.resolve(confirmed);
   }

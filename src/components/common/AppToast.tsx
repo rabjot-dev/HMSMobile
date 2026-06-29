@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import { subscribeToast, ToastState } from "../../services/toast.service";
 
-const colors: Record<ToastState["type"], { bg: string; border: string; text: string }> =
-  {
-    success: { bg: "#DCFCE7", border: "#22C55E", text: "#14532D" },
-    error: { bg: "#FEE2E2", border: "#EF4444", text: "#7F1D1D" },
-    info: { bg: "#DBEAFE", border: "#2563EB", text: "#1E3A8A" },
-  };
+const colors: Record<
+  ToastState["type"],
+  { bg: string; border: string; text: string }
+> = {
+  success: { bg: "#DCFCE7", border: "#22C55E", text: "#14532D" },
+  error: { bg: "#FEE2E2", border: "#EF4444", text: "#7F1D1D" },
+  info: { bg: "#DBEAFE", border: "#2563EB", text: "#1E3A8A" },
+};
 
 export default function AppToast() {
   const [toast, setToast] = useState<ToastState | null>(null);
@@ -27,9 +28,14 @@ export default function AppToast() {
       <TouchableOpacity
         activeOpacity={0.9}
         onPress={() => setToast(null)}
-        style={[styles.toast, { backgroundColor: palette.bg, borderLeftColor: palette.border }]}
+        style={[
+          styles.toast,
+          { backgroundColor: palette.bg, borderLeftColor: palette.border },
+        ]}
       >
-        <Text style={[styles.text, { color: palette.text }]}>{toast.message}</Text>
+        <Text style={[styles.text, { color: palette.text }]}>
+          {toast.message}
+        </Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -44,7 +50,6 @@ const styles = StyleSheet.create({
     zIndex: 9999,
     alignItems: "center",
   },
-
   toast: {
     width: "92%",
     minHeight: 48,
@@ -59,7 +64,6 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 8,
   },
-
   text: {
     fontSize: 14,
     fontWeight: "700",

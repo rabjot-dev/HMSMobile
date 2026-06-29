@@ -79,7 +79,6 @@ const styles = StyleSheet.create({
     paddingTop: 96,
     backgroundColor: "rgba(15, 23, 42, 0.35)",
   },
-
   card: {
     width: "100%",
     borderRadius: 8,
@@ -91,7 +90,6 @@ const styles = StyleSheet.create({
     shadowRadius: 28,
     elevation: 10,
   },
-
   icon: {
     width: 42,
     height: 42,
@@ -100,48 +98,39 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 14,
   },
-
   primaryIcon: {
     backgroundColor: "#DBEAFE",
   },
-
   dangerIcon: {
     backgroundColor: "#FEE2E2",
   },
-
   iconText: {
     fontSize: 22,
     fontWeight: "900",
   },
-
   primaryText: {
     color: "#2563EB",
   },
-
   dangerText: {
     color: "#DC2626",
   },
-
   title: {
     color: "#0F172A",
     fontSize: 20,
     fontWeight: "800",
   },
-
   message: {
     color: "#475569",
     fontSize: 14,
     lineHeight: 21,
     marginTop: 8,
   },
-
   actions: {
     flexDirection: "row",
     justifyContent: "flex-end",
     gap: 10,
     marginTop: 18,
   },
-
   cancelButton: {
     minHeight: 42,
     paddingHorizontal: 16,
@@ -150,7 +139,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#F1F5F9",
   },
-
   confirmButton: {
     minHeight: 42,
     paddingHorizontal: 16,
@@ -159,16 +147,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#2563EB",
   },
-
   dangerButton: {
     backgroundColor: "#DC2626",
   },
-
   cancelText: {
     color: "#334155",
     fontWeight: "800",
   },
-
   confirmText: {
     color: "#FFFFFF",
     fontWeight: "800",

@@ -16,7 +16,6 @@ import TimeSlotSelector from "../../src/components/selectors/TimeSlotSelectors";
 import PrimaryButton from "../../src/components/buttons/PrimaryButton";
 import { useEffect, useState } from "react";
 import { getDoctors } from "../../src/services/employee.service";
-
 import {
   getAvailableSlots,
   bookAppointment,
@@ -78,7 +77,9 @@ export default function BookAppointment() {
       setSlots(response.data.data);
     } catch (error: any) {
       showToast(
-        error.response?.data?.message || error.message || "Failed to load slots",
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to load slots",
         "error",
       );
     }
@@ -126,11 +127,8 @@ export default function BookAppointment() {
 
       await bookAppointment({
         doctorId,
-
         appointmentDate,
-
         appointmentTime,
-
         symptoms: symptoms.trim() ? [symptoms] : [],
       });
       clearAppointmentCache();
@@ -368,28 +366,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#F4F7FC",
     paddingHorizontal: 20,
   },
-
   title: {
     fontSize: 30,
     fontWeight: "800",
     color: "#0F172A",
     marginTop: 20,
   },
-
   subtitle: {
     color: "#64748B",
     marginTop: 8,
     marginBottom: 25,
     lineHeight: 22,
   },
-
   section: {
     fontSize: 18,
     fontWeight: "700",
     color: "#0F172A",
     marginBottom: 15,
   },
-
   dateButton: {
     height: 56,
     backgroundColor: "#FFFFFF",
@@ -399,12 +393,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
-
   dateText: {
     color: "#334155",
     fontSize: 15,
   },
-
   loadSlots: {
     backgroundColor: "#2563EB",
     height: 52,
@@ -413,12 +405,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 16,
   },
-
   loadSlotsText: {
     color: "#FFFFFF",
     fontWeight: "700",
   },
-
   textArea: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
@@ -429,7 +419,6 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     color: "#0F172A",
   },
-
   summary: {
     fontSize: 15,
     color: "#334155",

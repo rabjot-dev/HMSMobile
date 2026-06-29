@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 import {
   View,
   Text,
@@ -8,11 +7,8 @@ import {
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import { useNavigation } from "@react-navigation/native";
-
 import { login } from "../services/auth.service";
-
 import { saveToken } from "../storage/token.storage";
 import { isEmail } from "../utils/validators";
 import AppInput from "../components/inputs/AppInput";
@@ -169,25 +165,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F4F7FC",
   },
-
   scrollContainer: {
     flexGrow: 1,
     justifyContent: "center",
     paddingHorizontal: 20,
     paddingVertical: 30,
   },
-
   heroSection: {
     marginBottom: 30,
   },
-
   brand: {
     fontSize: 36,
     fontWeight: "800",
     color: "#0F172A",
     textAlign: "center",
   },
-
   tagline: {
     fontSize: 18,
     fontWeight: "600",
@@ -195,7 +187,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 8,
   },
-
   description: {
     textAlign: "center",
     color: "#64748B",
@@ -203,20 +194,17 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     paddingHorizontal: 10,
   },
-
   heading: {
     fontSize: 24,
     fontWeight: "700",
     color: "#0F172A",
     marginBottom: 8,
   },
-
   subHeading: {
     color: "#64748B",
     marginBottom: 24,
     lineHeight: 20,
   },
-
   forgotPassword: {
     color: "#2563EB",
     fontWeight: "600",
@@ -224,14 +212,12 @@ const styles = StyleSheet.create({
     marginTop: -2,
     marginBottom: 12,
   },
-
   registerText: {
     textAlign: "center",
     marginTop: 24,
     color: "#64748B",
     fontSize: 14,
   },
-
   registerLink: {
     color: "#2563EB",
     fontWeight: "700",

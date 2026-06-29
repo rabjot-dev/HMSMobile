@@ -29,7 +29,10 @@ export const cacheGetResponse = async (
   config: AxiosRequestConfig,
   responseData: unknown,
 ) => {
-  if ((config.method || "GET").toUpperCase() !== "GET" || isAuthUrl(config.url)) {
+  if (
+    (config.method || "GET").toUpperCase() !== "GET" ||
+    isAuthUrl(config.url)
+  ) {
     return;
   }
 

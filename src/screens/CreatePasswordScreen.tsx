@@ -7,15 +7,10 @@ import {
 } from "react-native";
 
 import { useState } from "react";
-
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import { Picker } from "@react-native-picker/picker";
-
 import { useRoute, useNavigation } from "@react-navigation/native";
-
 import { createPassword } from "../services/auth.service";
-
 import AppInput from "../components/inputs/AppInput";
 import GlassCard from "../components/cards/GlassCard";
 import PrimaryButton from "../components/buttons/PrimaryButton";
@@ -48,19 +43,12 @@ export default function CreatePasswordScreen() {
 
   const securityQuestions = [
     "What is your mother's maiden name?",
-
     "What was the name of your first school?",
-
     "What is your favorite movie?",
-
     "What was your childhood nickname?",
-
     "What is the name of your best friend?",
-
     "What city were you born in?",
-
     "What is your favorite food?",
-
     "What was the name of your first pet?",
   ];
 
@@ -147,15 +135,10 @@ export default function CreatePasswordScreen() {
 
       await createPassword({
         loginId,
-
         temporaryPassword,
-
         newPassword,
-
         confirmPassword,
-
         securityQuestion,
-
         securityAnswer,
       });
 
@@ -164,7 +147,10 @@ export default function CreatePasswordScreen() {
     } catch (error: any) {
       console.log("CREATE PASSWORD ERROR", error?.response?.data);
 
-      showToast(error?.response?.data?.message || "Failed to create password", "error");
+      showToast(
+        error?.response?.data?.message || "Failed to create password",
+        "error",
+      );
     } finally {
       setLoading(false);
     }
@@ -247,9 +233,7 @@ export default function CreatePasswordScreen() {
           <Text
             style={{
               color: getPasswordStrength().color,
-
               fontWeight: "600",
-
               marginBottom: 15,
             }}
           >
@@ -345,24 +329,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F4F7FC",
   },
-
   container: {
     flexGrow: 1,
     justifyContent: "center",
     padding: 20,
   },
-
   hero: {
     marginBottom: 30,
   },
-
   brand: {
     fontSize: 34,
     fontWeight: "800",
     color: "#0F172A",
     textAlign: "center",
   },
-
   tagline: {
     fontSize: 18,
     fontWeight: "600",
@@ -370,7 +350,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 8,
   },
-
   description: {
     textAlign: "center",
     color: "#64748B",
@@ -378,20 +357,17 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     paddingHorizontal: 10,
   },
-
   title: {
     fontSize: 24,
     fontWeight: "700",
     color: "#0F172A",
     marginBottom: 8,
   },
-
   subtitle: {
     color: "#64748B",
     marginBottom: 24,
     lineHeight: 20,
   },
-
   showPassword: {
     color: "#2563EB",
     fontWeight: "600",
@@ -399,21 +375,18 @@ const styles = StyleSheet.create({
     marginTop: -5,
     marginBottom: 12,
   },
-
   helperText: {
     color: "#64748B",
     fontSize: 12,
     marginBottom: 15,
     lineHeight: 18,
   },
-
   label: {
     fontSize: 13,
     fontWeight: "600",
     color: "#334155",
     marginBottom: 8,
   },
-
   pickerWrapper: {
     borderWidth: 1,
     borderColor: "#E2E8F0",
@@ -422,14 +395,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     marginBottom: 10,
   },
-
   errorText: {
     color: "#EF4444",
     fontSize: 12,
     marginBottom: 12,
     marginLeft: 4,
   },
-
   strengthBar: {
     height: 8,
     backgroundColor: "#E2E8F0",
@@ -437,7 +408,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginBottom: 10,
   },
-
   strengthFill: {
     height: "100%",
     borderRadius: 20,

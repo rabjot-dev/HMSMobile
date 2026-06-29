@@ -1,6 +1,5 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-
 import CardSkeleton from "./CardSkeleton";
 import OfflineBanner from "../common/OfflineBanner";
 

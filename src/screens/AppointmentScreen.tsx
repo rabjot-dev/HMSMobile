@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-
 import {
   ActivityIndicator,
   FlatList,
@@ -13,9 +12,7 @@ import {
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import { useNavigation } from "@react-navigation/native";
-
 import AppointmentCard from "../../src/components/cards/AppointmentCard";
 import useAppointments from "../../src/hooks/useAppointments";
 import CardSkeleton from "../../src/components/loaders/CardSkeleton";
@@ -34,8 +31,7 @@ export default function Appointments() {
     loadingMore,
     loadAppointments,
     refresh,
-  } =
-    useAppointments();
+  } = useAppointments();
 
   const [search, setSearch] = useState("");
 
@@ -116,9 +112,9 @@ export default function Appointments() {
           <OfflineSkeletonState message="Loading saved appointments while offline." />
         ) : (
           <>
-        <CardSkeleton />
-        <CardSkeleton />
-        <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
           </>
         )}
       </SafeAreaView>
@@ -224,23 +220,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F4F7FC",
   },
-
   header: {
     paddingHorizontal: 20,
     paddingTop: 20,
   },
-
   title: {
     fontSize: 30,
     fontWeight: "800",
     color: "#0F172A",
   },
-
   subtitle: {
     color: "#64748B",
     marginTop: 8,
   },
-
   bookButton: {
     marginHorizontal: 20,
     marginTop: 20,
@@ -250,18 +242,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   bookText: {
     color: "#FFFFFF",
     fontWeight: "700",
     fontSize: 16,
   },
-
   searchContainer: {
     paddingHorizontal: 20,
     marginTop: 18,
   },
-
   search: {
     height: 52,
     backgroundColor: "#FFFFFF",
@@ -271,7 +260,6 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
     marginBottom: 16,
   },
-
   filterChip: {
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -281,37 +269,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
-
   activeChip: {
     backgroundColor: "#2563EB",
   },
-
   filterText: {
     fontWeight: "700",
     color: "#334155",
   },
-
   activeFilterText: {
     color: "#FFFFFF",
   },
-
   emptyContainer: {
     alignItems: "center",
     marginTop: 100,
   },
-
   emptyTitle: {
     fontSize: 20,
     fontWeight: "700",
     color: "#0F172A",
   },
-
   emptyText: {
     marginTop: 8,
     color: "#64748B",
     textAlign: "center",
   },
-
   loadingMoreContainer: {
     paddingVertical: 18,
     alignItems: "center",

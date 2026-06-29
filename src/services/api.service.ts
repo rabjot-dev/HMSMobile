@@ -1,13 +1,6 @@
 import axiosDefault, { AxiosError, AxiosRequestConfig, create } from "axios";
-
 import { API_BASE_URL } from "../constants/api";
-
-import {
-  getToken,
-  saveToken,
-  removeTokens,
-} from "../storage/token.storage";
-
+import { getToken, saveToken, removeTokens } from "../storage/token.storage";
 import { resetToLogin } from "../navigation/RootNavigation";
 import { clearServiceCaches } from "./cache.service";
 import { showToast } from "./toast.service";
@@ -125,13 +118,15 @@ api.interceptors.response.use(
 
     return response;
   },
-
   async (error: AxiosError) => {
     const originalRequest = error.config as RetryAxiosRequestConfig;
 
     if (!error.response) {
       setOfflineStatus(true);
-      showToast("You appear to be offline. Please check your connection.", "error");
+      showToast(
+        "You appear to be offline. Please check your connection.",
+        "error",
+      );
 
       const cached = await getCachedResponse(originalRequest);
 
@@ -154,7 +149,10 @@ api.interceptors.response.use(
         !isFormDataBody(originalRequest.data)
       ) {
         await enqueueOfflineRequest(originalRequest);
-        showToast("Offline change queued. It will sync automatically.", "success");
+        showToast(
+          "Offline change queued. It will sync automatically.",
+          "success",
+        );
 
         return {
           data: {

@@ -1,7 +1,5 @@
 import { useCallback, useState, useMemo } from "react";
-
 import { AppointmentResponse } from "../types/Appointment";
-
 import { getAppointments } from "../services/appointment.service";
 
 export default function useAppointments() {

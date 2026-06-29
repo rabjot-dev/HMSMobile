@@ -7,19 +7,13 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import GlassCard from "../../src/components/cards/GlassCard";
-
 import PrimaryButton from "../../src/components/buttons/PrimaryButton";
-
 import TimeSlotSelector from "../../src/components/selectors/TimeSlotSelectors";
 import { useCallback, useEffect, useState } from "react";
-
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { minLength } from "../../src/utils/validators";
-
 import DateTimePicker from "@react-native-community/datetimepicker";
-
 import {
   getAppointmentById,
   getAvailableSlots,
@@ -81,7 +75,6 @@ export default function EditAppointment() {
 
       const response = await getAvailableSlots(
         appointment.doctorEmployeeId._id,
-
         appointmentDate,
       );
 
@@ -121,17 +114,11 @@ export default function EditAppointment() {
 
       setSubmitting(true);
 
-      await updateMyAppointment(
-        id as string,
-
-        {
-          appointmentDate,
-
-          appointmentTime,
-
-          symptoms: symptoms ? [symptoms] : [],
-        },
-      );
+      await updateMyAppointment(id as string, {
+        appointmentDate,
+        appointmentTime,
+        symptoms: symptoms ? [symptoms] : [],
+      });
       clearAppointmentCache();
       showToast("Appointment updated successfully", "success");
       navigation.goBack();
@@ -319,45 +306,38 @@ const styles = StyleSheet.create({
     backgroundColor: "#F4F7FC",
     paddingHorizontal: 20,
   },
-
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F4F7FC",
   },
-
   loadingText: {
     fontSize: 16,
     color: "#64748B",
   },
-
   title: {
     fontSize: 30,
     fontWeight: "800",
     color: "#0F172A",
     marginTop: 20,
   },
-
   subtitle: {
     color: "#64748B",
     marginTop: 8,
     marginBottom: 25,
     lineHeight: 22,
   },
-
   section: {
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 16,
     color: "#0F172A",
   },
-
   doctorCard: {
     flexDirection: "row",
     alignItems: "center",
   },
-
   avatar: {
     width: 60,
     height: 60,
@@ -367,24 +347,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 14,
   },
-
   avatarText: {
     color: "#FFFFFF",
     fontSize: 24,
     fontWeight: "800",
   },
-
   doctorName: {
     fontSize: 17,
     fontWeight: "700",
     color: "#0F172A",
   },
-
   doctorSubtitle: {
     marginTop: 4,
     color: "#64748B",
   },
-
   dateButton: {
     height: 56,
     backgroundColor: "#FFFFFF",
@@ -394,11 +370,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
-
   dateText: {
     color: "#334155",
   },
-
   loadButton: {
     backgroundColor: "#2563EB",
     height: 52,
@@ -407,12 +381,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 16,
   },
-
   loadButtonText: {
     color: "#FFFFFF",
     fontWeight: "700",
   },
-
   textArea: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
@@ -423,7 +395,6 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     color: "#0F172A",
   },
-
   summary: {
     fontSize: 15,
     color: "#334155",

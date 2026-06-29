@@ -10,7 +10,6 @@ import {
 } from "react-native";
 
 import { useNavigation } from "@react-navigation/native";
-
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import GlassCard from "../components/cards/GlassCard";
 import StatCard from "../components/cards/StatCard";
@@ -28,7 +27,6 @@ import LabReportCard from "../components/health-records/LabReportCard";
 import MedicalDocumentCard from "../components/health-records/MedicalDocumentCard";
 import { downloadPrescriptionPdf } from "../utils/downloadPrescriptionPdf";
 import useHealthRecords from "../hooks/useHealthRecords";
-
 import {
   Consultation,
   PrescriptionGroup,
@@ -60,8 +58,14 @@ export default function HealthRecordScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const { healthRecord, loading, refreshing, loadingMore, loadHealthRecord, refresh } =
-    useHealthRecords();
+  const {
+    healthRecord,
+    loading,
+    refreshing,
+    loadingMore,
+    loadHealthRecord,
+    refresh,
+  } = useHealthRecords();
   const offline = useOfflineStatus();
   const [activeTab, setActiveTab] = useState<HealthRecordTab>("TIMELINE");
   const [downloadingRecord, setDownloadingRecord] = useState(false);
@@ -74,23 +78,14 @@ export default function HealthRecordScreen() {
         .filter((consultation) => consultation.prescriptions?.length)
         .map((consultation) => ({
           consultationId: consultation._id,
-
           doctor: consultation.doctorEmployeeId?.name,
-
           department: consultation.doctorEmployeeId?.department,
-
           specialization: consultation.doctorEmployeeId?.specialization,
-
           date: consultation.createdAt,
-
           diagnosis: consultation.diagnosis,
-
           symptoms: consultation.symptoms,
-
           doctorNotes: consultation.doctorNotes,
-
           vitals: consultation.vitals,
-
           prescriptions: consultation.prescriptions,
         }))
         .sort((a, b) => getTime(b.date) - getTime(a.date)) ?? []
@@ -276,13 +271,7 @@ export default function HealthRecordScreen() {
         "medicalDocuments",
       );
     }
-  }, [
-    activeTab,
-    healthRecord,
-    loadHealthRecord,
-    loading,
-    loadingMore,
-  ]);
+  }, [activeTab, healthRecord, loadHealthRecord, loading, loadingMore]);
 
   const keyExtractor = useCallback((item: HealthRecordListItem) => item.id, []);
 
@@ -449,9 +438,9 @@ export default function HealthRecordScreen() {
           <OfflineSkeletonState message="Loading saved health records while offline." />
         ) : (
           <>
-        <CardSkeleton />
-        <CardSkeleton />
-        <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
           </>
         )}
       </View>
@@ -505,11 +494,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F4F7FC",
   },
-
   contentContainer: {
     paddingBottom: 120,
   },
-
   loaderContainer: {
     flex: 1,
     justifyContent: "center",
@@ -517,32 +504,27 @@ const styles = StyleSheet.create({
     backgroundColor: "#F4F7FC",
     padding: 20,
   },
-
   header: {
     paddingHorizontal: 20,
     paddingTop: 70,
   },
-
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
   },
-
   heading: {
     fontSize: 30,
     fontWeight: "800",
     color: "#0F172A",
   },
-
   subtitle: {
     color: "#64748B",
     marginTop: 8,
     fontSize: 15,
     lineHeight: 22,
   },
-
   downloadButton: {
     minWidth: 54,
     height: 38,
@@ -551,36 +533,29 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#2563EB",
   },
-
   downloadButtonDisabled: {
     opacity: 0.6,
   },
-
   downloadButtonText: {
     color: "#FFFFFF",
     fontSize: 13,
     fontWeight: "800",
   },
-
   statsContainer: {
     paddingHorizontal: 20,
     marginTop: 20,
   },
-
   statsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
   },
-
   tabsContainer: {
     marginHorizontal: 20,
     marginTop: 20,
   },
-
   listItem: {
     marginHorizontal: 20,
   },
-
   emptyText: {
     textAlign: "center",
     color: "#64748B",
@@ -588,7 +563,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontSize: 16,
   },
-
   loadingMoreContainer: {
     paddingVertical: 18,
     alignItems: "center",

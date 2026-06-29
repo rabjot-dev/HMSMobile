@@ -6,9 +6,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import { useCallback, useEffect, useState } from "react";
-
 import { useRoute, useNavigation } from "@react-navigation/native";
 import AppointmentSkeleton from "../../src/components/loaders/AppointmentSkeleton";
 import {
@@ -244,18 +242,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#F4F7FC",
     padding: 20,
   },
-
   title: {
     fontSize: 30,
     fontWeight: "800",
     color: "#0F172A",
     marginBottom: 20,
   },
-
   badgeContainer: {
     marginBottom: 20,
   },
-
   doctorAvatar: {
     width: 80,
     height: 80,
@@ -265,7 +260,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
   },
-
   avatarText: {
     color: "#fff",
     fontSize: 30,
@@ -278,19 +272,16 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#0F172A",
   },
-
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 20,
     color: "#0F172A",
   },
-
   symptoms: {
     color: "#334155",
     lineHeight: 22,
   },
-
   editButton: {
     backgroundColor: "#2563EB",
     height: 56,
@@ -299,7 +290,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 20,
   },
-
   cancelButton: {
     backgroundColor: "#EF4444",
     height: 56,
@@ -309,7 +299,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 40,
   },
-
   buttonText: {
     color: "#FFFFFF",
     fontWeight: "700",

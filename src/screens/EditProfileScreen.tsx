@@ -17,11 +17,9 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation } from "@react-navigation/native";
 import { getProfile, updateProfile } from "../../src/services/patient.service";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import GlassCard from "../../src/components/cards/GlassCard";
 import PrimaryButton from "../../src/components/buttons/PrimaryButton";
 import AppInput from "../../src/components/inputs/AppInput";
-
 import ChipSelector from "../../src/components/selectors/ChipSelector";
 import { showToast } from "../services/toast.service";
 
@@ -474,28 +472,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#F4F7FC",
     paddingHorizontal: 20,
   },
-
   title: {
     fontSize: 30,
     fontWeight: "800",
     color: "#0F172A",
     marginTop: 20,
   },
-
   subtitle: {
     color: "#64748B",
     marginTop: 8,
     marginBottom: 25,
     lineHeight: 22,
   },
-
   section: {
     fontSize: 18,
     fontWeight: "700",
     color: "#0F172A",
     marginBottom: 18,
   },
-
   dateButton: {
     height: 56,
     justifyContent: "center",
@@ -506,7 +500,6 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
     marginBottom: 20,
   },
-
   dateText: {
     color: "#334155",
   },

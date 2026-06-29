@@ -1,6 +1,5 @@
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-
 import { HealthRecordDetails } from "../types/HealthRecord";
 import { getFileUrl } from "./fileUrl";
 
@@ -71,7 +70,8 @@ const renderPrescriptionTable = (prescriptions: any[] = []) => {
 
 export const downloadHealthRecordPdf = async (record: HealthRecordDetails) => {
   const patient = record.patient;
-  const fullName = `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
+  const fullName =
+    `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
 
   const html = `
     <html>
@@ -100,9 +100,10 @@ export const downloadHealthRecordPdf = async (record: HealthRecordDetails) => {
         </div>
         <section>
           <h2>Consultations & Prescriptions (${record.consultations.length})</h2>
-          ${record.consultations
-            .map(
-              (item) => `
+          ${
+            record.consultations
+              .map(
+                (item) => `
                 <div class="card">
                   <strong>${formatDate(item.createdAt)} - ${escapeHtml(item.doctorEmployeeId?.name)}</strong>
                   <p>Diagnosis: ${escapeHtml(item.diagnosis)}</p>
@@ -111,14 +112,16 @@ export const downloadHealthRecordPdf = async (record: HealthRecordDetails) => {
                   ${renderPrescriptionTable(item.prescriptions)}
                 </div>
               `,
-            )
-            .join("") || "<p>No consultations available.</p>"}
+              )
+              .join("") || "<p>No consultations available.</p>"
+          }
         </section>
         <section>
           <h2>Lab Reports (${record.labReports.length})</h2>
-          ${record.labReports
-            .map(
-              (item) => `
+          ${
+            record.labReports
+              .map(
+                (item) => `
                 <div class="card">
                   <strong>${escapeHtml(item.title)}</strong>
                   <p>${escapeHtml(item.reportType)} - ${formatDate(item.reportDate)}</p>
@@ -127,14 +130,16 @@ export const downloadHealthRecordPdf = async (record: HealthRecordDetails) => {
                   ${renderUploadedFile(item.title, item.documentUrl)}
                 </div>
               `,
-            )
-            .join("") || "<p>No lab reports available.</p>"}
+              )
+              .join("") || "<p>No lab reports available.</p>"
+          }
         </section>
         <section>
           <h2>Medical Documents (${record.medicalDocuments.length})</h2>
-          ${record.medicalDocuments
-            .map(
-              (item) => `
+          ${
+            record.medicalDocuments
+              .map(
+                (item) => `
                 <div class="card">
                   <strong>${escapeHtml(item.title)}</strong>
                   <p>${escapeHtml(item.documentType)} - ${formatDate(item.recordDate)}</p>
@@ -143,8 +148,9 @@ export const downloadHealthRecordPdf = async (record: HealthRecordDetails) => {
                   ${renderUploadedFile(item.title, item.documentUrl)}
                 </div>
               `,
-            )
-            .join("") || "<p>No medical documents available.</p>"}
+              )
+              .join("") || "<p>No medical documents available.</p>"
+          }
         </section>
       </body>
     </html>

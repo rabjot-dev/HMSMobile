@@ -1,6 +1,5 @@
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-
 import { PrescriptionGroup } from "../types/HealthRecord";
 
 export async function downloadPrescriptionPdf(prescription: PrescriptionGroup) {

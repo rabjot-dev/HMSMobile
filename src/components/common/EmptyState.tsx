@@ -1,5 +1,4 @@
 import React from "react";
-
 import { StyleSheet, Text, View } from "react-native";
 
 interface Props {
@@ -25,7 +24,6 @@ const styles = StyleSheet.create({
     paddingVertical: 36,
     alignItems: "center",
   },
-
   icon: {
     width: 44,
     height: 44,
@@ -35,20 +33,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#DBEAFE",
     marginBottom: 12,
   },
-
   iconText: {
     color: "#2563EB",
     fontSize: 20,
     fontWeight: "800",
   },
-
   text: {
     color: "#0F172A",
     fontSize: 16,
     fontWeight: "800",
     textAlign: "center",
   },
-
   message: {
     color: "#64748B",
     fontSize: 14,
