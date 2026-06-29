@@ -25,6 +25,9 @@ import GlassCard from "../components/cards/GlassCard";
 import ProfileInfoCard from "../components/cards/ProfileInfoCard";
 import { showToast } from "../services/toast.service";
 import { confirmAction } from "../services/confirm.service";
+import OfflineBanner from "../components/common/OfflineBanner";
+import OfflineSkeletonState from "../components/loaders/OfflineSkeletonState";
+import useOfflineStatus from "../hooks/useOfflineStatus";
 
 interface Profile {
   patientId?: string;
@@ -48,6 +51,7 @@ interface Profile {
 
 export default function ProfileScreen() {
   const navigation = useNavigation<any>();
+  const offline = useOfflineStatus();
 
   const [profile, setProfile] = useState<Profile | null>(null);
 
@@ -114,14 +118,18 @@ export default function ProfileScreen() {
     resetToLogin();
   };
 
-  if (loading) {
+  if (loading || (offline && !profile)) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#2563EB" />
+        {offline ? (
+          <OfflineSkeletonState message="Loading saved profile while offline." />
+        ) : (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color="#2563EB" />
 
-          <Text style={styles.loaderText}>Loading Profile...</Text>
-        </View>
+            <Text style={styles.loaderText}>Loading Profile...</Text>
+          </View>
+        )}
       </SafeAreaView>
     );
   }
@@ -137,6 +145,8 @@ export default function ProfileScreen() {
           paddingBottom: 140,
         }}
       >
+        {offline ? <OfflineBanner /> : null}
+
         <View style={styles.header}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>

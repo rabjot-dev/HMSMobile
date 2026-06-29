@@ -11,6 +11,7 @@ import {
 import { resetToLogin } from "../navigation/RootNavigation";
 import { clearServiceCaches } from "./cache.service";
 import { showToast } from "./toast.service";
+import { setOfflineStatus } from "./offline-status.service";
 import {
   cacheGetResponse,
   enqueueOfflineRequest,
@@ -114,6 +115,8 @@ api.interceptors.request.use(async (config) => {
 
 api.interceptors.response.use(
   async (response) => {
+    setOfflineStatus(false);
+
     await cacheGetResponse(response.config, response.data);
 
     if (!isReplayingOfflineQueue) {
@@ -127,12 +130,13 @@ api.interceptors.response.use(
     const originalRequest = error.config as RetryAxiosRequestConfig;
 
     if (!error.response) {
+      setOfflineStatus(true);
       showToast("You appear to be offline. Please check your connection.", "error");
 
       const cached = await getCachedResponse(originalRequest);
 
       if (cached) {
-        showToast("Offline mode: showing cached data.", "info");
+        showToast("Offline mode", "info");
 
         return {
           data: cached,

@@ -19,9 +19,13 @@ import { useNavigation } from "@react-navigation/native";
 import AppointmentCard from "../../src/components/cards/AppointmentCard";
 import useAppointments from "../../src/hooks/useAppointments";
 import CardSkeleton from "../../src/components/loaders/CardSkeleton";
+import OfflineBanner from "../../src/components/common/OfflineBanner";
+import OfflineSkeletonState from "../../src/components/loaders/OfflineSkeletonState";
+import useOfflineStatus from "../../src/hooks/useOfflineStatus";
 
 export default function Appointments() {
   const navigation = useNavigation<any>();
+  const offline = useOfflineStatus();
 
   const {
     appointments,
@@ -105,12 +109,18 @@ export default function Appointments() {
     ),
     [navigation],
   );
-  if (loading && !appointments) {
+  if ((loading || offline) && !appointments) {
     return (
       <SafeAreaView style={styles.container}>
+        {offline ? (
+          <OfflineSkeletonState message="Loading saved appointments while offline." />
+        ) : (
+          <>
         <CardSkeleton />
         <CardSkeleton />
         <CardSkeleton />
+          </>
+        )}
       </SafeAreaView>
     );
   }
@@ -135,6 +145,8 @@ export default function Appointments() {
         }}
         ListHeaderComponent={
           <>
+            {offline ? <OfflineBanner /> : null}
+
             <View style={styles.header}>
               <Text style={styles.title}>My Appointments</Text>
 

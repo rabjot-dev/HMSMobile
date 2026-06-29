@@ -13,12 +13,16 @@ import { useNavigation } from "@react-navigation/native";
 
 import { getDashboard } from "../../src/services/patient.service";
 import DashboardSkeleton from "../../src/components/loaders/DashboardSkeleton";
+import OfflineBanner from "../../src/components/common/OfflineBanner";
+import OfflineSkeletonState from "../../src/components/loaders/OfflineSkeletonState";
 import GlassCard from "../../src/components/cards/GlassCard";
 import StatCard from "../../src/components/cards/StatCard";
 import QuickActionCard from "../../src/components/cards/QuickActionCard";
+import useOfflineStatus from "../../src/hooks/useOfflineStatus";
 
 export default function Dashboard() {
   const navigation = useNavigation<any>();
+  const offline = useOfflineStatus();
   const [refreshing, setRefreshing] = useState(false);
   const [dashboard, setDashboard] = useState<any>(null);
 
@@ -117,10 +121,14 @@ export default function Dashboard() {
 
     return `In ${diff} days`;
   }, [dashboard]);
-  if (loading) {
+  if (loading || (offline && !dashboard)) {
     return (
       <SafeAreaView style={styles.container}>
-        <DashboardSkeleton />
+        {offline ? (
+          <OfflineSkeletonState message="Loading saved dashboard data while offline." />
+        ) : (
+          <DashboardSkeleton />
+        )}
       </SafeAreaView>
     );
   }
@@ -134,6 +142,8 @@ export default function Dashboard() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {offline ? <OfflineBanner /> : null}
+
         <View style={styles.hero}>
           <Text style={styles.greeting}>{greeting}</Text>
 

@@ -20,6 +20,8 @@ import HealthRecordTabs, {
 } from "../components/health-records/HealthRecordTabs";
 import { getFileUrl } from "../utils/fileUrl";
 import CardSkeleton from "../components/loaders/CardSkeleton";
+import OfflineBanner from "../components/common/OfflineBanner";
+import OfflineSkeletonState from "../components/loaders/OfflineSkeletonState";
 import TimelineCard from "../components/health-records/TimelineCard";
 import PrescriptionCard from "../components/health-records/PrescriptionCard";
 import LabReportCard from "../components/health-records/LabReportCard";
@@ -40,6 +42,7 @@ import { downloadFile } from "../utils/downloadFile";
 import { getMyHealthRecord } from "../services/healthRecord.service";
 import { downloadHealthRecordPdf } from "../utils/downloadHealthRecordPdf";
 import { showToast } from "../services/toast.service";
+import useOfflineStatus from "../hooks/useOfflineStatus";
 
 type HealthRecordListItem =
   | { type: "TIMELINE"; id: string; value: Consultation }
@@ -59,6 +62,7 @@ export default function HealthRecordScreen() {
 
   const { healthRecord, loading, refreshing, loadingMore, loadHealthRecord, refresh } =
     useHealthRecords();
+  const offline = useOfflineStatus();
   const [activeTab, setActiveTab] = useState<HealthRecordTab>("TIMELINE");
   const [downloadingRecord, setDownloadingRecord] = useState(false);
   useEffect(() => {
@@ -355,6 +359,8 @@ export default function HealthRecordScreen() {
   const listHeader = useMemo(
     () => (
       <>
+        {offline ? <OfflineBanner /> : null}
+
         <View style={styles.header}>
           <View style={styles.headerRow}>
             <Text style={styles.heading}>Health Records</Text>
@@ -417,7 +423,13 @@ export default function HealthRecordScreen() {
         </View>
       </>
     ),
-    [activeTab, downloadingRecord, handleDownloadCompleteRecord, healthRecord],
+    [
+      activeTab,
+      downloadingRecord,
+      handleDownloadCompleteRecord,
+      healthRecord,
+      offline,
+    ],
   );
 
   const listFooter = useMemo(
@@ -430,12 +442,18 @@ export default function HealthRecordScreen() {
     [loadingMore],
   );
 
-  if (loading && !healthRecord) {
+  if ((loading || offline) && !healthRecord) {
     return (
       <View style={styles.container}>
+        {offline ? (
+          <OfflineSkeletonState message="Loading saved health records while offline." />
+        ) : (
+          <>
         <CardSkeleton />
         <CardSkeleton />
         <CardSkeleton />
+          </>
+        )}
       </View>
     );
   }
