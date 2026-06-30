@@ -180,7 +180,7 @@ api.interceptors.response.use(
       logger.warn("Refresh token request failed");
       await logoutUser();
 
-      return Promise.reject(error);
+      throw error;
     }
 
     if (
@@ -233,7 +233,7 @@ api.interceptors.response.use(
 
         await logoutUser();
 
-        return Promise.reject(refreshError);
+        throw(refreshError);
       } finally {
         isRefreshing = false;
       }
@@ -245,7 +245,7 @@ api.interceptors.response.use(
       status: error.response?.status,
     });
 
-    return Promise.reject(error);
+    throw(error);
   },
 );
 

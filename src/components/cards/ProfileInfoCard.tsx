@@ -6,7 +6,7 @@ interface Props {
   value: string;
 }
 
-export default function ProfileInfoCard({ label, value }: Props) {
+export default function ProfileInfoCard({ label, value }: Readonly<Props>) {
   return (
     <View style={styles.card}>
       <Text style={styles.label}>{label}</Text>

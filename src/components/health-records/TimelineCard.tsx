@@ -7,7 +7,7 @@ interface Props {
   consultation: Consultation;
 }
 
-function TimelineCard({ consultation }: Props) {
+function TimelineCard({ consultation }: Readonly<Props>) {
   const doctor = consultation.doctorEmployeeId;
 
   return (
