@@ -15,6 +15,7 @@ import AppInput from "../components/inputs/AppInput";
 import GlassCard from "../components/cards/GlassCard";
 import PrimaryButton from "../components/buttons/PrimaryButton";
 import { showToast } from "../services/toast.service";
+import { logger } from "../utils/logger";
 
 export default function CreatePasswordScreen() {
   const route = useRoute<any>();
@@ -145,7 +146,7 @@ export default function CreatePasswordScreen() {
       showToast("Password created successfully", "success");
       navigation.replace("Login");
     } catch (error: any) {
-      console.log("CREATE PASSWORD ERROR", error?.response?.data);
+      logger.error("Create password failed", error);
 
       showToast(
         error?.response?.data?.message || "Failed to create password",
@@ -173,7 +174,7 @@ export default function CreatePasswordScreen() {
         </View>
 
         <GlassCard>
-          <Text style={styles.title}>First Time Login 🔐</Text>
+          <Text style={styles.title}>First Time Login</Text>
 
           <Text style={styles.subtitle}>
             Your temporary password must be changed before continuing.

@@ -23,6 +23,7 @@ import { confirmAction } from "../services/confirm.service";
 import OfflineBanner from "../components/common/OfflineBanner";
 import OfflineSkeletonState from "../components/loaders/OfflineSkeletonState";
 import useOfflineStatus from "../hooks/useOfflineStatus";
+import { logger } from "../utils/logger";
 
 interface Profile {
   patientId?: string;
@@ -66,7 +67,7 @@ export default function ProfileScreen() {
 
       setProfile(response.data.data);
     } catch (error) {
-      console.log("PROFILE ERROR:", error);
+      logger.error("Profile load failed", error);
 
       showToast("Unable to load profile.", "error");
     } finally {

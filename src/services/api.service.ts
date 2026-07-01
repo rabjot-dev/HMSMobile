@@ -116,7 +116,9 @@ api.interceptors.response.use(
     await cacheGetResponse(response.config, response.data);
 
     if (!isReplayingOfflineQueue) {
-      replayOfflineQueue();
+      replayOfflineQueue().catch((replayError) => {
+        logger.warn("Offline queue replay failed", { error: replayError });
+      });
     }
 
     return response;
@@ -233,7 +235,11 @@ api.interceptors.response.use(
 
         await logoutUser();
 
+<<<<<<< HEAD
         throw(refreshError);
+=======
+        throw refreshError;
+>>>>>>> 5d5b6d4 (commit)
       } finally {
         isRefreshing = false;
       }
@@ -245,7 +251,11 @@ api.interceptors.response.use(
       status: error.response?.status,
     });
 
+<<<<<<< HEAD
     throw(error);
+=======
+    throw error;
+>>>>>>> 5d5b6d4 (commit)
   },
 );
 

@@ -17,6 +17,7 @@ import GlassCard from "../../src/components/cards/GlassCard";
 import StatCard from "../../src/components/cards/StatCard";
 import QuickActionCard from "../../src/components/cards/QuickActionCard";
 import useOfflineStatus from "../../src/hooks/useOfflineStatus";
+import { logger } from "../../src/utils/logger";
 
 export default function Dashboard() {
   const navigation = useNavigation<any>();
@@ -34,7 +35,7 @@ export default function Dashboard() {
 
       setDashboard(response.data.data);
     } catch (error) {
-      console.log(error);
+      logger.error("Dashboard load failed", error);
     } finally {
       setLoading(false);
     }
@@ -86,14 +87,14 @@ export default function Dashboard() {
     const hour = new Date().getHours();
 
     if (hour < 12) {
-      return "Good Morning 👋";
+      return "Good Morning";
     }
 
     if (hour < 18) {
-      return "Good Afternoon ☀️";
+      return "Good Afternoon";
     }
 
-    return "Good Evening 🌙";
+    return "Good Evening";
   }, []);
 
   const appointmentText = useMemo(() => {
@@ -301,12 +302,12 @@ export default function Dashboard() {
               </View>
 
               <Text style={styles.info}>
-                📅{" "}
+                Date:{" "}
                 {dashboard?.upcomingAppointment?.appointmentDate?.split("T")[0]}
               </Text>
 
               <Text style={styles.info}>
-                🕐 {dashboard?.upcomingAppointment?.timeSlot}
+                Time: {dashboard?.upcomingAppointment?.timeSlot}
               </Text>
             </View>
           ) : (
