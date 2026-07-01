@@ -23,6 +23,7 @@ import {
 } from "../../src/services/appointment.service";
 import { formatLocalDate } from "../../src/utils/date";
 import { showToast } from "../services/toast.service";
+import { logger } from "../utils/logger";
 
 export default function BookAppointment() {
   const navigation = useNavigation<any>();
@@ -52,7 +53,7 @@ export default function BookAppointment() {
 
       setDoctors(response.data.data);
     } catch (error) {
-      console.log("DOCTOR ERROR", error);
+      logger.error("Doctor list load failed", error);
 
       showToast("Failed to load doctors", "error");
     }

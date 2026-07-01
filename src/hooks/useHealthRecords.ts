@@ -1,6 +1,7 @@
 import { useCallback, useState, useMemo } from "react";
 import { HealthRecordDetails } from "../types/HealthRecord";
 import { getMyHealthRecord } from "../services/healthRecord.service";
+import { logger } from "../utils/logger";
 
 type AppendSection = "consultations" | "labReports" | "medicalDocuments";
 
@@ -94,8 +95,8 @@ export default function useHealthRecords() {
             },
           };
         });
-      } catch (error: any) {
-        console.log("Health Record Error", error?.response?.data ?? error);
+      } catch (error) {
+        logger.error("Health record load failed", error);
       } finally {
         setLoading(false);
 

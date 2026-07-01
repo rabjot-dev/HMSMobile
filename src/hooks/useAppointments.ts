@@ -1,6 +1,7 @@
 import { useCallback, useState, useMemo } from "react";
-import { AppointmentResponse } from "../types/Appointment";
+import { Appointment, AppointmentResponse } from "../types/Appointment";
 import { getAppointments } from "../services/appointment.service";
+import { logger } from "../utils/logger";
 
 export default function useAppointments() {
   const [appointments, setAppointments] = useState<AppointmentResponse | null>(
@@ -51,13 +52,15 @@ export default function useAppointments() {
           return {
             data: [
               ...current.data,
-              ...nextData.filter((item: any) => !existingIds.has(item._id)),
+              ...nextData.filter(
+                (item: Appointment) => !existingIds.has(item._id),
+              ),
             ],
             meta: nextMeta,
           };
         });
-      } catch (error: any) {
-        console.log("Appointment Error", error?.response?.data ?? error);
+      } catch (error) {
+        logger.error("Appointment list load failed", error);
       } finally {
         setLoading(false);
 

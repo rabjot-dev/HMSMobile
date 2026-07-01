@@ -20,6 +20,7 @@ import StatusBadge from "../../src/components/badges/StatusBadge";
 import InfoRow from "../../src/components/cards/InfoRow";
 import { showToast } from "../services/toast.service";
 import { confirmAction } from "../services/confirm.service";
+import { logger } from "../utils/logger";
 
 export default function AppointmentDetails() {
   const navigation = useNavigation<any>();
@@ -39,7 +40,7 @@ export default function AppointmentDetails() {
 
       setAppointment(response.data.data);
     } catch (error) {
-      console.log(error);
+      logger.error("Appointment detail load failed", error);
     } finally {
       setLoading(false);
     }
@@ -58,7 +59,7 @@ export default function AppointmentDetails() {
       clearAppointmentCache();
       navigation.goBack();
     } catch (error) {
-      console.log("Cancel Error", error);
+      logger.error("Appointment cancellation failed", error);
 
       showToast("Failed to cancel appointment", "error");
     } finally {

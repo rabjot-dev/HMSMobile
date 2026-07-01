@@ -41,6 +41,7 @@ import { getMyHealthRecord } from "../services/healthRecord.service";
 import { downloadHealthRecordPdf } from "../utils/downloadHealthRecordPdf";
 import { showToast } from "../services/toast.service";
 import useOfflineStatus from "../hooks/useOfflineStatus";
+import { logger } from "../utils/logger";
 
 type HealthRecordListItem =
   | { type: "TIMELINE"; id: string; value: Consultation }
@@ -213,7 +214,7 @@ export default function HealthRecordScreen() {
       await downloadHealthRecordPdf(response.data.data);
       showToast("Complete health record is ready to save or share.", "success");
     } catch (error) {
-      console.log("Download health record error", error);
+      logger.error("Complete health record download failed", error);
       showToast("Unable to download complete health record.", "error");
     } finally {
       setDownloadingRecord(false);

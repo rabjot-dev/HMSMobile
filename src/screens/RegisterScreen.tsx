@@ -13,6 +13,7 @@ import AppInput from "../components/inputs/AppInput";
 import PrimaryButton from "../components/buttons/PrimaryButton";
 import GlassCard from "../components/cards/GlassCard";
 import { showToast } from "../services/toast.service";
+import { logger } from "../utils/logger";
 
 export default function Register() {
   const navigation = useNavigation<any>();
@@ -102,9 +103,7 @@ export default function Register() {
       showToast("Account created successfully", "success");
       navigation.navigate("Login");
     } catch (error: any) {
-      console.log("REGISTER ERROR", error);
-
-      console.log("REGISTER RESPONSE", error?.response?.data);
+      logger.error("Registration failed", error);
 
       showToast(
         error?.response?.data?.message || "Registration failed",
