@@ -7,8 +7,9 @@ import {
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useNavigation } from "@react-navigation/native";
+import { useQuery } from "@tanstack/react-query";
 import { getDashboard } from "../../src/services/patient.service";
 import DashboardSkeleton from "../../src/components/loaders/DashboardSkeleton";
 import OfflineBanner from "../../src/components/common/OfflineBanner";
@@ -22,37 +23,27 @@ import { logger } from "../../src/utils/logger";
 export default function Dashboard() {
   const navigation = useNavigation<any>();
   const offline = useOfflineStatus();
-  const [refreshing, setRefreshing] = useState(false);
-  const [dashboard, setDashboard] = useState<any>(null);
-
-  const [loading, setLoading] = useState(true);
-
-  const loadDashboard = useCallback(async () => {
-    try {
-      setLoading(true);
-
+  const {
+    data: dashboard,
+    isPending,
+    isRefetching,
+    refetch,
+  } = useQuery({
+    queryKey: ["dashboard", "patient"],
+    queryFn: async () => {
       const response = await getDashboard();
 
-      setDashboard(response.data.data);
-    } catch (error) {
-      logger.error("Dashboard load failed", error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-  useEffect(() => {
-    loadDashboard();
-  }, [loadDashboard]);
+      return response.data.data;
+    },
+  });
 
   const onRefresh = useCallback(async () => {
     try {
-      setRefreshing(true);
-
-      await loadDashboard();
-    } finally {
-      setRefreshing(false);
+      await refetch();
+    } catch (error) {
+      logger.error("Dashboard refresh failed", error);
     }
-  }, [loadDashboard]);
+  }, [refetch]);
   const goToBook = useCallback(
     () => navigation.navigate("BookAppointment"),
     [navigation],
@@ -120,7 +111,7 @@ export default function Dashboard() {
 
     return `In ${diff} days`;
   }, [dashboard]);
-  if (loading || (offline && !dashboard)) {
+  if ((isPending || offline) && !dashboard) {
     return (
       <SafeAreaView style={styles.container}>
         {offline ? (
@@ -138,7 +129,7 @@ export default function Dashboard() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
         }
       >
         {offline ? <OfflineBanner /> : null}

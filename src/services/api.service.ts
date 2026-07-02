@@ -1,8 +1,14 @@
 import axiosDefault, { AxiosError, AxiosRequestConfig, create } from "axios";
 import { API_BASE_URL } from "../constants/api";
-import { getToken, saveToken, removeTokens } from "../storage/token.storage";
+import {
+  getRefreshToken,
+  getToken,
+  removeTokens,
+  saveTokens,
+} from "../storage/token.storage";
 import { resetToLogin } from "../navigation/RootNavigation";
 import { clearServiceCaches } from "./cache.service";
+import { queryClient } from "./query-client";
 import { showToast } from "./toast.service";
 import { setOfflineStatus } from "./offline-status.service";
 import { logger } from "../utils/logger";
@@ -49,6 +55,7 @@ const processQueue = (error: unknown, token?: string) => {
 
 const logoutUser = async () => {
   clearServiceCaches();
+  queryClient.clear();
 
   await removeTokens();
 
@@ -210,17 +217,26 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
+        const refreshToken = await getRefreshToken();
+
+        if (!refreshToken) {
+          throw new Error("Refresh token is missing");
+        }
+
         const response = await axiosDefault.post(
           `${API_BASE_URL}/auth/refresh-token`,
-          {},
+          {
+            refreshToken,
+          },
           {
             withCredentials: true,
           },
         );
 
         const newAccessToken = response.data.data.accessToken;
+        const newRefreshToken = response.data.data.refreshToken;
 
-        await saveToken(newAccessToken);
+        await saveTokens(newAccessToken, newRefreshToken);
 
         processQueue(null, newAccessToken);
 
@@ -235,11 +251,7 @@ api.interceptors.response.use(
 
         await logoutUser();
 
-<<<<<<< HEAD
-        throw(refreshError);
-=======
         throw refreshError;
->>>>>>> 5d5b6d4 (commit)
       } finally {
         isRefreshing = false;
       }
@@ -251,11 +263,7 @@ api.interceptors.response.use(
       status: error.response?.status,
     });
 
-<<<<<<< HEAD
-    throw(error);
-=======
     throw error;
->>>>>>> 5d5b6d4 (commit)
   },
 );
 

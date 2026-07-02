@@ -24,6 +24,12 @@ export default function Appointments() {
   const navigation = useNavigation<any>();
   const offline = useOfflineStatus();
 
+  const [search, setSearch] = useState("");
+
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  const [selectedFilter, setSelectedFilter] = useState("ALL");
+
   const {
     appointments,
     loading,
@@ -31,13 +37,7 @@ export default function Appointments() {
     loadingMore,
     loadAppointments,
     refresh,
-  } = useAppointments();
-
-  const [search, setSearch] = useState("");
-
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-
-  const [selectedFilter, setSelectedFilter] = useState("ALL");
+  } = useAppointments(debouncedSearch, selectedFilter);
 
   const filters = useMemo(
     () => ["ALL", "PENDING", "BOOKED", "COMPLETED", "REJECTED", "CANCELLED"],
@@ -52,13 +52,9 @@ export default function Appointments() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  useEffect(() => {
-    loadAppointments("", debouncedSearch, selectedFilter);
-  }, [debouncedSearch, selectedFilter, loadAppointments]);
-
   const onRefresh = useCallback(() => {
-    refresh(debouncedSearch, selectedFilter);
-  }, [debouncedSearch, selectedFilter, refresh]);
+    refresh();
+  }, [refresh]);
 
   const loadMoreAppointments = useCallback(() => {
     if (!appointments || loading || loadingMore) {

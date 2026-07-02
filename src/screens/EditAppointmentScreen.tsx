@@ -10,8 +10,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import GlassCard from "../../src/components/cards/GlassCard";
 import PrimaryButton from "../../src/components/buttons/PrimaryButton";
 import TimeSlotSelector from "../../src/components/selectors/TimeSlotSelectors";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { minLength } from "../../src/utils/validators";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
@@ -27,9 +28,9 @@ export default function EditAppointment() {
   const navigation = useNavigation<any>();
 
   const route = useRoute<any>();
+  const queryClient = useQueryClient();
 
   const { id } = route.params;
-  const [appointment, setAppointment] = useState<any>(null);
 
   const [appointmentDate, setAppointmentDate] = useState("");
 
@@ -37,33 +38,44 @@ export default function EditAppointment() {
 
   const [symptoms, setSymptoms] = useState("");
 
-  const [slots, setSlots] = useState<string[]>([]);
   const [errors, setErrors] = useState<any>({});
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const loadAppointment = useCallback(async () => {
-    try {
+  const { data: appointment } = useQuery({
+    queryKey: ["appointment", id],
+    queryFn: async () => {
       const response = await getAppointmentById(id as string);
 
-      const data = response.data.data;
-
-      setAppointment(data);
-
-      setAppointmentDate(data.appointmentDate.split("T")[0]);
-
-      setAppointmentTime(data.timeSlot);
-
-      setSymptoms(data.symptoms?.[0] || "");
-    } catch {
-      showToast("Failed to load appointment", "error");
-    }
-  }, [id]);
+      return response.data.data;
+    },
+  });
 
   useEffect(() => {
-    loadAppointment();
-  }, [loadAppointment]);
+    if (!appointment) {
+      return;
+    }
+
+    setAppointmentDate(appointment.appointmentDate.split("T")[0]);
+    setAppointmentTime(appointment.timeSlot);
+    setSymptoms(appointment.symptoms?.[0] || "");
+  }, [appointment]);
+
+  const slotsQuery = useQuery({
+    queryKey: ["available-slots", appointment?.doctorEmployeeId?._id, appointmentDate],
+    queryFn: async () => {
+      const response = await getAvailableSlots(
+        appointment.doctorEmployeeId._id,
+        appointmentDate,
+      );
+
+      return response.data.data ?? [];
+    },
+    enabled: false,
+  });
+
+  const slots = slotsQuery.data ?? [];
 
   const loadSlots = async () => {
     try {
@@ -73,12 +85,7 @@ export default function EditAppointment() {
         return;
       }
 
-      const response = await getAvailableSlots(
-        appointment.doctorEmployeeId._id,
-        appointmentDate,
-      );
-
-      setSlots(response.data.data);
+      await slotsQuery.refetch();
     } catch {
       showToast("Failed to load slots", "error");
     }
@@ -120,6 +127,9 @@ export default function EditAppointment() {
         symptoms: symptoms ? [symptoms] : [],
       });
       clearAppointmentCache();
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["appointment", id] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "patient"] });
       showToast("Appointment updated successfully", "success");
       navigation.goBack();
     } catch (error: any) {
@@ -204,7 +214,7 @@ export default function EditAppointment() {
                   const date = formatLocalDate(selectedDate);
 
                   setAppointmentDate(date);
-                  setSlots([]);
+                  queryClient.removeQueries({ queryKey: ["available-slots"] });
                   setAppointmentTime("");
 
                   setErrors({

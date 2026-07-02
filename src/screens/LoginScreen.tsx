@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { login } from "../services/auth.service";
-import { saveToken } from "../storage/token.storage";
+import { saveTokens } from "../storage/token.storage";
 import { isEmail } from "../utils/validators";
 import AppInput from "../components/inputs/AppInput";
 import PrimaryButton from "../components/buttons/PrimaryButton";
@@ -59,9 +59,10 @@ export default function Login() {
 
       const loginResponse = response.data.data;
 
-      const accessToken = response.data.data.accessToken;
+      const accessToken = loginResponse.accessToken;
+      const refreshToken = loginResponse.refreshToken;
 
-      await saveToken(accessToken);
+      await saveTokens(accessToken, refreshToken);
 
       if (loginResponse.user?.isFirstLogin) {
         navigation.replace("CreatePassword", {

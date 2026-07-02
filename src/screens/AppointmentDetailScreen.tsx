@@ -6,8 +6,9 @@ import {
   StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import AppointmentSkeleton from "../../src/components/loaders/AppointmentSkeleton";
 import {
   getAppointmentById,
@@ -26,29 +27,19 @@ export default function AppointmentDetails() {
   const navigation = useNavigation<any>();
 
   const route = useRoute<any>();
+  const queryClient = useQueryClient();
 
   const { id } = route.params;
-  const [appointment, setAppointment] = useState<any>(null);
   const [cancelling, setCancelling] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  const loadAppointment = useCallback(async () => {
-    try {
-      setLoading(true);
-
+  const { data: appointment, isPending } = useQuery({
+    queryKey: ["appointment", id],
+    queryFn: async () => {
       const response = await getAppointmentById(id as string);
 
-      setAppointment(response.data.data);
-    } catch (error) {
-      logger.error("Appointment detail load failed", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+      return response.data.data;
+    },
+  });
 
-  useEffect(() => {
-    loadAppointment();
-  }, [loadAppointment]);
   const confirmCancel = async () => {
     try {
       setCancelling(true);
@@ -57,6 +48,8 @@ export default function AppointmentDetails() {
 
       showToast("Appointment cancelled successfully", "success");
       clearAppointmentCache();
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["appointment", id] });
       navigation.goBack();
     } catch (error) {
       logger.error("Appointment cancellation failed", error);
@@ -79,7 +72,7 @@ export default function AppointmentDetails() {
     }
   };
 
-  if (loading) {
+  if (isPending && !appointment) {
     return (
       <SafeAreaView style={styles.container}>
         <View

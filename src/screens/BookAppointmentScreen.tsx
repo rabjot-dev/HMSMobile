@@ -14,8 +14,9 @@ import ChipSelector from "../../src/components/selectors/ChipSelector";
 import DoctorCard from "../../src/components/cards/DoctorCard";
 import TimeSlotSelector from "../../src/components/selectors/TimeSlotSelectors";
 import PrimaryButton from "../../src/components/buttons/PrimaryButton";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { getDoctors } from "../../src/services/employee.service";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getAvailableSlots,
   bookAppointment,
@@ -25,10 +26,15 @@ import { formatLocalDate } from "../../src/utils/date";
 import { showToast } from "../services/toast.service";
 import { logger } from "../utils/logger";
 
+type Doctor = {
+  _id: string;
+  department: string;
+  [key: string]: any;
+};
+
 export default function BookAppointment() {
   const navigation = useNavigation<any>();
-
-  const [doctors, setDoctors] = useState<any[]>([]);
+  const queryClient = useQueryClient();
 
   const [selectedDepartment, setSelectedDepartment] = useState("");
 
@@ -40,29 +46,38 @@ export default function BookAppointment() {
 
   const [symptoms, setSymptoms] = useState("");
 
-  const [slots, setSlots] = useState<string[]>([]);
   const [errors, setErrors] = useState<any>({});
   const [submitting, setSubmitting] = useState(false);
-  useEffect(() => {
-    loadDoctors();
-  }, []);
-
-  const loadDoctors = async () => {
-    try {
+  const { data: doctors = [] } = useQuery<Doctor[]>({
+    queryKey: ["doctors"],
+    queryFn: async () => {
       const response = await getDoctors();
 
-      setDoctors(response.data.data);
-    } catch (error) {
-      logger.error("Doctor list load failed", error);
+      return response.data.data ?? [];
+    },
+  });
 
-      showToast("Failed to load doctors", "error");
-    }
-  };
+  const slotsQuery = useQuery<string[]>({
+    queryKey: ["available-slots", doctorId, appointmentDate],
+    queryFn: async () => {
+      const response = await getAvailableSlots(doctorId, appointmentDate);
 
-  const departments = [...new Set(doctors.map((doctor) => doctor.department))];
+      return response.data.data ?? [];
+    },
+    enabled: false,
+  });
 
-  const filteredDoctors = doctors.filter(
-    (doctor) => doctor.department === selectedDepartment,
+  const slots = slotsQuery.data ?? [];
+
+  const departments = useMemo(
+    () => [...new Set(doctors.map((doctor) => doctor.department))],
+    [doctors],
+  );
+
+  const filteredDoctors = useMemo(
+    () =>
+      doctors.filter((doctor) => doctor.department === selectedDepartment),
+    [doctors, selectedDepartment],
   );
 
   const loadSlots = async () => {
@@ -73,10 +88,9 @@ export default function BookAppointment() {
         return;
       }
 
-      const response = await getAvailableSlots(doctorId, appointmentDate);
-
-      setSlots(response.data.data);
+      await slotsQuery.refetch();
     } catch (error: any) {
+      logger.error("Available slots load failed", error);
       showToast(
         error.response?.data?.message ||
           error.message ||
@@ -133,6 +147,8 @@ export default function BookAppointment() {
         symptoms: symptoms.trim() ? [symptoms] : [],
       });
       clearAppointmentCache();
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "patient"] });
 
       showToast("Appointment request sent", "success");
       navigation.goBack();
@@ -169,7 +185,7 @@ export default function BookAppointment() {
 
               setDoctorId("");
 
-              setSlots([]);
+              queryClient.removeQueries({ queryKey: ["available-slots"] });
 
               setAppointmentTime("");
             }}
@@ -199,7 +215,7 @@ export default function BookAppointment() {
                 onPress={() => {
                   setDoctorId(doctor._id);
 
-                  setSlots([]);
+                  queryClient.removeQueries({ queryKey: ["available-slots"] });
 
                   setAppointmentTime("");
                 }}
@@ -254,7 +270,7 @@ export default function BookAppointment() {
                   const date = formatLocalDate(selectedDate);
 
                   setAppointmentDate(date);
-                  setSlots([]);
+                  queryClient.removeQueries({ queryKey: ["available-slots"] });
                   setAppointmentTime("");
                   setErrors({
                     ...errors,

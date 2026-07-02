@@ -8,14 +8,16 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useEffect, useState, useCallback } from "react";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
+import { useNavigation } from "@react-navigation/native";
+import { useQuery } from "@tanstack/react-query";
 import { getProfile } from "../services/patient.service";
 import { logout } from "../services/auth.service";
 import { removeTokens } from "../storage/token.storage";
 import { resetToLogin } from "../navigation/RootNavigation";
 import { clearAppointmentCache } from "../services/appointment.service";
 import { clearDoctorsCache } from "../services/employee.service";
+import { queryClient } from "../services/query-client";
 import GlassCard from "../components/cards/GlassCard";
 import ProfileInfoCard from "../components/cards/ProfileInfoCard";
 import { showToast } from "../services/toast.service";
@@ -49,46 +51,26 @@ export default function ProfileScreen() {
   const navigation = useNavigation<any>();
   const offline = useOfflineStatus();
 
-  const [profile, setProfile] = useState<Profile | null>(null);
-
-  const [loading, setLoading] = useState(true);
-
-  const [refreshing, setRefreshing] = useState(false);
-
-  const loadProfile = async (isRefresh = false) => {
-    try {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-
+  const {
+    data: profile,
+    isPending,
+    isRefetching,
+    refetch,
+  } = useQuery<Profile>({
+    queryKey: ["profile", "patient"],
+    queryFn: async () => {
       const response = await getProfile();
 
-      setProfile(response.data.data);
-    } catch (error) {
-      logger.error("Profile load failed", error);
-
-      showToast("Unable to load profile.", "error");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadProfile(true);
-    }, []),
-  );
+      return response.data.data;
+    },
+  });
 
   const onRefresh = useCallback(() => {
-    loadProfile(true);
-  }, []);
+    refetch().catch((error) => {
+      logger.error("Profile refresh failed", error);
+      showToast("Unable to load profile.", "error");
+    });
+  }, [refetch]);
 
   const handleLogout = async () => {
     const confirmed = await confirmAction({
@@ -108,13 +90,14 @@ export default function ProfileScreen() {
 
     clearAppointmentCache();
     clearDoctorsCache();
+    queryClient.clear();
 
     await removeTokens();
 
     resetToLogin();
   };
 
-  if (loading || (offline && !profile)) {
+  if ((isPending || offline) && !profile) {
     return (
       <SafeAreaView style={styles.container}>
         {offline ? (
@@ -135,7 +118,7 @@ export default function ProfileScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
         }
         contentContainerStyle={{
           paddingBottom: 140,

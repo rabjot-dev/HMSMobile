@@ -70,9 +70,6 @@ export default function HealthRecordScreen() {
   const offline = useOfflineStatus();
   const [activeTab, setActiveTab] = useState<HealthRecordTab>("TIMELINE");
   const [downloadingRecord, setDownloadingRecord] = useState(false);
-  useEffect(() => {
-    loadHealthRecord("", "", "");
-  }, [loadHealthRecord]);
   const prescriptions = useMemo(() => {
     return (
       healthRecord?.consultations
