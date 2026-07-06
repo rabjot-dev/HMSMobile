@@ -1,5 +1,18 @@
 export const isEmail = (value: string): boolean => {
-  return /^\S+@\S+\.\S+$/.test(value.trim());
+  const email = value.trim();
+  const atIndex = email.indexOf("@");
+  const lastAtIndex = email.lastIndexOf("@");
+  const domainStart = atIndex + 1;
+  const dotAfterAt = email.indexOf(".", domainStart);
+
+  return (
+    email.length <= 254 &&
+    atIndex > 0 &&
+    atIndex === lastAtIndex &&
+    dotAfterAt > domainStart &&
+    dotAfterAt < email.length - 1 &&
+    !email.includes(" ")
+  );
 };
 
 export const isPhone = (value: string): boolean => {

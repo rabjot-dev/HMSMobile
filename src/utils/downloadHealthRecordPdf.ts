@@ -5,9 +5,9 @@ import { getFileUrl } from "./fileUrl";
 
 const escapeHtml = (value?: string | number | null) =>
   String(value ?? "N/A")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replaceAll('&', "&amp;")
+    .replaceAll('<', "&lt;")
+    .replaceAll('>', "&gt;");
 
 const formatDate = (value?: string) =>
   value ? new Date(value).toLocaleDateString() : "N/A";

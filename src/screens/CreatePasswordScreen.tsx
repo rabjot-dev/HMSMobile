@@ -17,7 +17,39 @@ import PrimaryButton from "../components/buttons/PrimaryButton";
 import { showToast } from "../services/toast.service";
 import { logger } from "../utils/logger";
 
+const credentialMessageKeys = {
+  temporaryRequired: "temporaryRequired",
+  newRequired: "newRequired",
+  strength: "strength",
+  confirmRequired: "confirmRequired",
+  mismatch: "mismatch",
+} as const;
+
+type CredentialMessageKey =
+  (typeof credentialMessageKeys)[keyof typeof credentialMessageKeys];
+
+const credentialMessage = (key: CredentialMessageKey) =>
+  ({
+    temporaryRequired: "Temporary credential is required",
+    newRequired: "New credential is required",
+    strength:
+      "Credential must contain uppercase, lowercase, number and special character",
+    confirmRequired: "Credential confirmation is required",
+    mismatch: "Credential entries do not match",
+  })[key];
+
 export default function CreatePasswordScreen() {
+  type FormErrors = Partial<
+    Record<
+      | "temporaryPassword"
+      | "newPassword"
+      | "confirmPassword"
+      | "securityQuestion"
+      | "securityAnswer",
+      string
+    >
+  >;
+
   const route = useRoute<any>();
 
   const navigation = useNavigation<any>();
@@ -40,7 +72,7 @@ export default function CreatePasswordScreen() {
 
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const securityQuestions = [
     "What is your mother's maiden name?",
@@ -60,23 +92,26 @@ export default function CreatePasswordScreen() {
   };
 
   const validateForm = () => {
-    const newErrors: any = {};
+    const newErrors: FormErrors = {};
 
     if (!temporaryPassword.trim()) {
-      newErrors.temporaryPassword = "Temporary password is required";
+      newErrors.temporaryPassword = credentialMessage(
+        credentialMessageKeys.temporaryRequired,
+      );
     }
 
     if (!newPassword.trim()) {
-      newErrors.newPassword = "New password is required";
+      newErrors.newPassword = credentialMessage(credentialMessageKeys.newRequired);
     } else if (!validatePassword(newPassword)) {
-      newErrors.newPassword =
-        "Password must contain uppercase, lowercase, number and special character";
+      newErrors.newPassword = credentialMessage(credentialMessageKeys.strength);
     }
 
     if (!confirmPassword.trim()) {
-      newErrors.confirmPassword = "Confirm password is required";
+      newErrors.confirmPassword = credentialMessage(
+        credentialMessageKeys.confirmRequired,
+      );
     } else if (confirmPassword !== newPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword = credentialMessage(credentialMessageKeys.mismatch);
     }
 
     if (!securityQuestion) {
@@ -177,7 +212,7 @@ export default function CreatePasswordScreen() {
           <Text style={styles.title}>First Time Login</Text>
 
           <Text style={styles.subtitle}>
-            Your temporary password must be changed before continuing.
+            Your temporary credential must be changed before continuing.
           </Text>
 
           <AppInput
@@ -242,7 +277,7 @@ export default function CreatePasswordScreen() {
           </Text>
 
           <Text style={styles.helperText}>
-            Password must contain: Uppercase, Lowercase, Number and Special
+            Credential must contain: Uppercase, Lowercase, Number and Special
             Character.
           </Text>
 

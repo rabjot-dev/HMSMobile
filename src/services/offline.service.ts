@@ -17,6 +17,17 @@ const CACHE_TTL_MS = 10 * 60 * 1000;
 const getCacheKey = (method?: string, url?: string, params?: unknown) =>
   `${CACHE_PREFIX}${(method || "GET").toUpperCase()}:${url}:${JSON.stringify(params || {})}`;
 
+const createQueueId = (
+  queueLength: number,
+  config: AxiosRequestConfig,
+) =>
+  [
+    Date.now(),
+    queueLength + 1,
+    (config.method || "GET").toUpperCase(),
+    config.url || "request",
+  ].join("-");
+
 export const isAuthUrl = (url?: string) => Boolean(url?.includes("/auth/"));
 
 export const isFormDataBody = (data: unknown) =>
@@ -72,7 +83,7 @@ export const enqueueOfflineRequest = async (config: AxiosRequestConfig) => {
   const queue: QueuedRequest[] = stored ? JSON.parse(stored) : [];
 
   queue.push({
-    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    id: createQueueId(queue.length, config),
     method: config.method,
     url: config.url,
     params: config.params,

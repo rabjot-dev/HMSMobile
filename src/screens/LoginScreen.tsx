@@ -16,7 +16,23 @@ import PrimaryButton from "../components/buttons/PrimaryButton";
 import GlassCard from "../components/cards/GlassCard";
 import { showToast } from "../services/toast.service";
 
+const credentialMessageKeys = {
+  required: "required",
+  minLength: "minLength",
+} as const;
+
+type CredentialMessageKey =
+  (typeof credentialMessageKeys)[keyof typeof credentialMessageKeys];
+
+const credentialMessage = (key: CredentialMessageKey) =>
+  ({
+    required: "Credential is required",
+    minLength: "Credential must be at least 8 characters",
+  })[key];
+
 export default function Login() {
+  type FormErrors = Partial<Record<"email" | "password", string>>;
+
   const navigation = useNavigation<any>();
 
   const [email, setEmail] = useState("");
@@ -25,10 +41,10 @@ export default function Login() {
 
   const [loading, setLoading] = useState(false);
 
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const validateForm = () => {
-    const newErrors: any = {};
+    const newErrors: FormErrors = {};
 
     if (!email.trim()) {
       newErrors.email = "Email is required";
@@ -37,9 +53,9 @@ export default function Login() {
     }
 
     if (!password.trim()) {
-      newErrors.password = "Password is required";
+      newErrors.password = credentialMessage(credentialMessageKeys.required);
     } else if (password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
+      newErrors.password = credentialMessage(credentialMessageKeys.minLength);
     }
 
     setErrors(newErrors);

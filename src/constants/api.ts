@@ -1,2 +1,5 @@
-export const API_BASE_URL = "http://10.0.2.2:5000/api";
+const DEFAULT_API_BASE_URL = "https://localhost:5000/api";
+
+export const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL;
 export const FILE_BASE_URL = API_BASE_URL.replace("/api", "");

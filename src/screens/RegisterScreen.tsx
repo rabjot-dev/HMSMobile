@@ -15,7 +15,37 @@ import GlassCard from "../components/cards/GlassCard";
 import { showToast } from "../services/toast.service";
 import { logger } from "../utils/logger";
 
+const credentialMessageKeys = {
+  required: "required",
+  strength: "strength",
+  confirmRequired: "confirmRequired",
+  mismatch: "mismatch",
+} as const;
+
+type CredentialMessageKey =
+  (typeof credentialMessageKeys)[keyof typeof credentialMessageKeys];
+
+const credentialMessage = (key: CredentialMessageKey) =>
+  ({
+    required: "Credential is required",
+    strength: "Must contain uppercase, lowercase, number & special character",
+    confirmRequired: "Credential confirmation is required",
+    mismatch: "Credential entries do not match",
+  })[key];
+
 export default function Register() {
+  type FormErrors = Partial<
+    Record<
+      | "firstName"
+      | "lastName"
+      | "email"
+      | "phone"
+      | "password"
+      | "confirmPassword",
+      string
+    >
+  >;
+
   const navigation = useNavigation<any>();
 
   const [firstName, setFirstName] = useState("");
@@ -32,10 +62,10 @@ export default function Register() {
 
   const [loading, setLoading] = useState(false);
 
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const validateForm = () => {
-    const newErrors: any = {};
+    const newErrors: FormErrors = {};
 
     if (!firstName.trim()) {
       newErrors.firstName = "First name is required";
@@ -66,16 +96,17 @@ export default function Register() {
     }
 
     if (!password.trim()) {
-      newErrors.password = "Password is required";
+      newErrors.password = credentialMessage(credentialMessageKeys.required);
     } else if (!strongPassword(password)) {
-      newErrors.password =
-        "Must contain uppercase, lowercase, number & special character";
+      newErrors.password = credentialMessage(credentialMessageKeys.strength);
     }
 
     if (!confirmPassword.trim()) {
-      newErrors.confirmPassword = "Confirm password is required";
+      newErrors.confirmPassword = credentialMessage(
+        credentialMessageKeys.confirmRequired,
+      );
     } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword = credentialMessage(credentialMessageKeys.mismatch);
     }
 
     setErrors(newErrors);
