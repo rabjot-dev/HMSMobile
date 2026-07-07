@@ -114,7 +114,7 @@ export default function Login() {
         </View>
 
         <GlassCard>
-          <Text style={styles.heading}>Welcome Back 👋</Text>
+          <Text style={styles.heading}>Welcome Back</Text>
 
           <Text style={styles.subHeading}>
             Sign in to continue your healthcare journey.

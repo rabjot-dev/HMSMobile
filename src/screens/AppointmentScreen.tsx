@@ -194,7 +194,7 @@ export default function Appointments() {
         ListEmptyComponent={
           !loading ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyTitle}>📅 No Appointments</Text>
+              <Text style={styles.emptyTitle}>No Appointments</Text>
             </View>
           ) : null
         }
