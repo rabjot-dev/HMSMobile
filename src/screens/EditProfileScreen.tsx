@@ -11,6 +11,7 @@ import {
   isPhone,
   isPincode,
   onlyLetters,
+  isValidName,
   futureDate,
 } from "../../src/utils/validators";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -161,8 +162,9 @@ export default function EditProfile() {
 
     if (!emergencyContactName.trim()) {
       newErrors.emergencyContactName = "Contact name is required";
-    } else if (!onlyLetters(emergencyContactName)) {
-      newErrors.emergencyContactName = "Only letters allowed";
+    } else if (!isValidName(emergencyContactName)) {
+      newErrors.emergencyContactName =
+        "Use 2-50 letters, spaces, apostrophes or hyphens";
     }
 
     if (!emergencyContactPhone.trim()) {

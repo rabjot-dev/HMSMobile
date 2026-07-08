@@ -6,7 +6,7 @@ import { registerPatient } from "../services/patient.service";
 import {
   isEmail,
   isPhone,
-  onlyLetters,
+  isValidName,
   strongPassword,
 } from "../utils/validators";
 import AppInput from "../components/inputs/AppInput";
@@ -66,32 +66,34 @@ export default function Register() {
 
   const validateForm = () => {
     const newErrors: FormErrors = {};
+    const normalizedFirstName = firstName.trim();
+    const normalizedLastName = lastName.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPhone = phone.trim();
 
-    if (!firstName.trim()) {
+    if (!normalizedFirstName) {
       newErrors.firstName = "First name is required";
-    } else if (!onlyLetters(firstName)) {
-      newErrors.firstName = "Only letters allowed";
-    } else if (firstName.length < 2) {
-      newErrors.firstName = "Minimum 2 characters required";
+    } else if (!isValidName(normalizedFirstName)) {
+      newErrors.firstName =
+        "Use 2-50 letters, spaces, apostrophes or hyphens";
     }
 
-    if (!lastName.trim()) {
+    if (!normalizedLastName) {
       newErrors.lastName = "Last name is required";
-    } else if (!onlyLetters(lastName)) {
-      newErrors.lastName = "Only letters allowed";
-    } else if (lastName.length < 2) {
-      newErrors.lastName = "Minimum 2 characters required";
+    } else if (!isValidName(normalizedLastName)) {
+      newErrors.lastName =
+        "Use 2-50 letters, spaces, apostrophes or hyphens";
     }
 
-    if (!email.trim()) {
+    if (!normalizedEmail) {
       newErrors.email = "Email is required";
-    } else if (!isEmail(email)) {
+    } else if (!isEmail(normalizedEmail)) {
       newErrors.email = "Enter valid email address";
     }
 
-    if (!phone.trim()) {
+    if (!normalizedPhone) {
       newErrors.phone = "Phone number is required";
-    } else if (!isPhone(phone)) {
+    } else if (!isPhone(normalizedPhone)) {
       newErrors.phone = "Enter valid 10 digit mobile number";
     }
 
@@ -123,10 +125,10 @@ export default function Register() {
 
     try {
       await registerPatient({
-        firstName,
-        lastName,
-        email,
-        phone,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim().toLowerCase(),
+        phone: phone.trim(),
         password,
         confirmPassword,
       });

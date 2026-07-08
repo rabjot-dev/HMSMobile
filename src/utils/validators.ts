@@ -24,7 +24,7 @@ export const isPincode = (value: string): boolean => {
 };
 
 export const onlyLetters = (value: string): boolean => {
-  return /^[A-Za-z ]+$/.test(value.trim());
+  return /^[A-Za-z\s'-]+$/.test(value.trim());
 };
 
 export const strongPassword = (value: string): boolean => {
@@ -48,7 +48,7 @@ export const isRequired = (value: string): boolean => {
 };
 
 export const isValidName = (value: string): boolean => {
-  return /^[A-Za-z ]{2,50}$/.test(value.trim());
+  return /^[A-Za-z\s'-]{2,50}$/.test(value.trim());
 };
 
 export const isValidAddress = (value: string): boolean => {
