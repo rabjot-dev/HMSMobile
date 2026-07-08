@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 type OfflineBannerProps = {
-  compact?: boolean;
+  readonly compact?: boolean;
 };
 
 export default function OfflineBanner({ compact = false }: OfflineBannerProps) {

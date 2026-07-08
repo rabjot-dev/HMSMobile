@@ -2,12 +2,12 @@ import React from "react";
 import { View, StyleSheet, StyleProp, ViewStyle } from "react-native";
 
 interface Props {
-  children: React.ReactNode;
-  style?: StyleProp<ViewStyle>;
+  readonly children: React.ReactNode;
+  readonly style?: StyleProp<ViewStyle>;
 }
 
-function GlassCard({ children }: Props) {
-  return <View style={styles.card}>{children}</View>;
+function GlassCard({ children, style }: Props) {
+  return <View style={[styles.card, style]}>{children}</View>;
 }
 
 export default React.memo(GlassCard);

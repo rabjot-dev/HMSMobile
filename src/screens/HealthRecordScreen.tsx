@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  ListRenderItem,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -289,8 +290,8 @@ export default function HealthRecordScreen() {
     return "No documents found";
   }, [activeTab]);
 
-  const renderHealthRecordItem = useCallback(
-    ({ item }: { item: HealthRecordListItem }) => {
+  const renderHealthRecordItem = useCallback<ListRenderItem<HealthRecordListItem>>(
+    ({ item }) => {
       if (item.type === "TIMELINE") {
         return (
           <View style={styles.listItem}>
@@ -474,12 +475,12 @@ export default function HealthRecordScreen() {
       }
       ListHeaderComponent={listHeader}
       ListEmptyComponent={
-        !loading ? (
+        loading ? null : (
           <EmptyState
             title={emptyTitle}
             message="New items will appear here as your care team updates your record."
           />
-        ) : null
+        )
       }
       renderItem={renderHealthRecordItem}
       ListFooterComponent={listFooter}

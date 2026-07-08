@@ -109,76 +109,82 @@ export default function EditProfile() {
     }
   };
 
-  const validateForm = () => {
-    const newErrors: any = {};
-
+  const validateDateOfBirth = () => {
+    const errors: any = {};
     if (!dateOfBirth) {
-      newErrors.dateOfBirth = "Date of birth is required";
+      errors.dateOfBirth = "Date of birth is required";
     } else if (futureDate(dateOfBirth)) {
-      newErrors.dateOfBirth = "Date of birth cannot be in future";
+      errors.dateOfBirth = "Date of birth cannot be in future";
     }
+    return errors;
+  };
 
-    if (!gender) {
-      newErrors.gender = "Please select gender";
-    }
+  const validateBasicFields = () => {
+    const errors: any = {};
+    if (!gender) errors.gender = "Please select gender";
+    if (!bloodGroup) errors.bloodGroup = "Please select blood group";
+    if (!maritalStatus) errors.maritalStatus = "Please select marital status";
+    return errors;
+  };
 
-    if (!bloodGroup) {
-      newErrors.bloodGroup = "Please select blood group";
-    }
-
-    if (!maritalStatus) {
-      newErrors.maritalStatus = "Please select marital status";
-    }
-
+  const validateAddressDetails = () => {
+    const errors: any = {};
     if (!address.trim()) {
-      newErrors.address = "Address is required";
+      errors.address = "Address is required";
     } else if (address.length < 10) {
-      newErrors.address = "Minimum 10 characters required";
+      errors.address = "Minimum 10 characters required";
     }
-
     if (!city.trim()) {
-      newErrors.city = "City is required";
+      errors.city = "City is required";
     } else if (!onlyLetters(city)) {
-      newErrors.city = "Only letters allowed";
+      errors.city = "Only letters allowed";
     }
-
     if (!state.trim()) {
-      newErrors.state = "State is required";
+      errors.state = "State is required";
     } else if (!onlyLetters(state)) {
-      newErrors.state = "Only letters allowed";
+      errors.state = "Only letters allowed";
     }
-
     if (!country.trim()) {
-      newErrors.country = "Country is required";
+      errors.country = "Country is required";
     } else if (!onlyLetters(country)) {
-      newErrors.country = "Only letters allowed";
+      errors.country = "Only letters allowed";
     }
-
     if (!pincode.trim()) {
-      newErrors.pincode = "Pincode is required";
+      errors.pincode = "Pincode is required";
     } else if (!isPincode(pincode)) {
-      newErrors.pincode = "Enter valid 6 digit pincode";
+      errors.pincode = "Enter valid 6 digit pincode";
     }
+    return errors;
+  };
 
+  const validateEmergencyContact = () => {
+    const errors: any = {};
     if (!emergencyContactName.trim()) {
-      newErrors.emergencyContactName = "Contact name is required";
+      errors.emergencyContactName = "Contact name is required";
     } else if (!isValidName(emergencyContactName)) {
-      newErrors.emergencyContactName =
+      errors.emergencyContactName =
         "Use 2-50 letters, spaces, apostrophes or hyphens";
     }
-
     if (!emergencyContactPhone.trim()) {
-      newErrors.emergencyContactPhone = "Phone number is required";
+      errors.emergencyContactPhone = "Phone number is required";
     } else if (!isPhone(emergencyContactPhone)) {
-      newErrors.emergencyContactPhone = "Enter valid phone number";
+      errors.emergencyContactPhone = "Enter valid phone number";
     }
-
     if (!relationship.trim()) {
-      newErrors.relationship = "Relationship is required";
+      errors.relationship = "Relationship is required";
     }
+    return errors;
+  };
+
+  const validateForm = () => {
+    const newErrors = {
+      ...validateDateOfBirth(),
+      ...validateBasicFields(),
+      ...validateAddressDetails(),
+      ...validateEmergencyContact(),
+    };
 
     setErrors(newErrors);
-
     return Object.keys(newErrors).length === 0;
   };
 

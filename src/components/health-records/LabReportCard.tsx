@@ -4,11 +4,11 @@ import GlassCard from "../cards/GlassCard";
 import { LabReport } from "../../types/HealthRecord";
 
 interface Props {
-  report: LabReport;
+  readonly report: LabReport;
 
-  onView: (report: LabReport) => void;
+  readonly onView: (report: LabReport) => void;
 
-  onDownload: (report: LabReport) => void;
+  readonly onDownload: (report: LabReport) => void;
 }
 
 function LabReportCard({ report, onView, onDownload }: Props) {

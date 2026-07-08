@@ -4,11 +4,11 @@ import GlassCard from "../cards/GlassCard";
 import { PrescriptionGroup } from "../../types/HealthRecord";
 
 interface Props {
-  item: PrescriptionGroup;
+  readonly item: PrescriptionGroup;
 
-  onView: (item: PrescriptionGroup) => void;
+  readonly onView: (item: PrescriptionGroup) => void;
 
-  onDownload: (item: PrescriptionGroup) => void;
+  readonly onDownload: (item: PrescriptionGroup) => void;
 }
 
 function PrescriptionCard({ item, onView, onDownload }: Props) {

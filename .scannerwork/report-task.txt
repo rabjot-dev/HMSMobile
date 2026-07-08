@@ -1,6 +1,6 @@
-projectKey=HMS_REACT
+projectKey=HMS_Mobile
 serverUrl=http://localhost:9000
 serverVersion=26.1.0.118079
-dashboardUrl=http://localhost:9000/dashboard?id=HMS_REACT
-ceTaskId=05992c98-e69a-4004-9b57-2967a6691416
-ceTaskUrl=http://localhost:9000/api/ce/task?id=05992c98-e69a-4004-9b57-2967a6691416
+dashboardUrl=http://localhost:9000/dashboard?id=HMS_Mobile
+ceTaskId=b447a526-7931-4b05-9e69-4f4c169e5ba7
+ceTaskUrl=http://localhost:9000/api/ce/task?id=b447a526-7931-4b05-9e69-4f4c169e5ba7

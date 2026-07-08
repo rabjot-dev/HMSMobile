@@ -4,8 +4,8 @@ import { Ionicons } from "@expo/vector-icons";
 import StatusBadge from "../badges/StatusBadge";
 
 interface Props {
-  item: any;
-  onPress: () => void;
+  readonly item: any;
+  readonly onPress: () => void;
 }
 function AppointmentCard({ item, onPress }: Props) {
   const doctorName = item?.doctorEmployeeId?.name || "Doctor";

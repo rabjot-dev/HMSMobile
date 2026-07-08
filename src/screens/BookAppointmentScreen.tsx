@@ -144,6 +144,10 @@ export default function BookAppointment() {
         doctorId,
         appointmentDate,
         appointmentTime,
+        appointmentType: "CONSULTATION",
+        priority: "NORMAL",
+        paymentStatus: "PENDING",
+        visitMode: "OFFLINE",
         symptoms: symptoms.trim() ? [symptoms] : [],
       });
       clearAppointmentCache();

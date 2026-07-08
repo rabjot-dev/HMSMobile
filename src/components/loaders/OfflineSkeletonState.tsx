@@ -4,20 +4,25 @@ import CardSkeleton from "./CardSkeleton";
 import OfflineBanner from "../common/OfflineBanner";
 
 type OfflineSkeletonStateProps = {
-  message?: string;
-  cards?: number;
+  readonly message?: string;
+  readonly cards?: number;
 };
 
 export default function OfflineSkeletonState({
   message = "Trying to reconnect and load saved data.",
   cards = 3,
 }: OfflineSkeletonStateProps) {
+  const skeletonCardIds = Array.from(
+    { length: cards },
+    (_, cardNumber) => `offline-skeleton-card-${cardNumber + 1}`,
+  );
+
   return (
     <View style={styles.container}>
       <OfflineBanner compact />
       <Text style={styles.message}>{message}</Text>
-      {Array.from({ length: cards }).map((_, index) => (
-        <CardSkeleton key={index} />
+      {skeletonCardIds.map((cardId) => (
+        <CardSkeleton key={cardId} />
       ))}
     </View>
   );

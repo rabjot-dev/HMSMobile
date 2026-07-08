@@ -4,11 +4,11 @@ import GlassCard from "../cards/GlassCard";
 import { MedicalDocument } from "../../types/HealthRecord";
 
 interface Props {
-  document: MedicalDocument;
+  readonly document: MedicalDocument;
 
-  onView: (document: MedicalDocument) => void;
+  readonly onView: (document: MedicalDocument) => void;
 
-  onDownload: (document: MedicalDocument) => void;
+  readonly onDownload: (document: MedicalDocument) => void;
 }
 
 function MedicalDocumentCard({ document, onView, onDownload }: Props) {

@@ -94,7 +94,10 @@ export default function PrescriptionDetailsScreen({ route }: any) {
         <Text style={styles.cardTitle}>Medicines</Text>
 
         {prescription.prescriptions.map((medicine, index) => (
-          <View key={index} style={styles.medicineCard}>
+          <View
+            key={medicine._id || `medicine-${index}`}
+            style={styles.medicineCard}
+          >
             <Text style={styles.medicineName}>{medicine.medicineName}</Text>
 
             <Text style={styles.medicineText}>Dosage: {medicine.dosage}</Text>

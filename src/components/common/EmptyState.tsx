@@ -2,8 +2,8 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 interface Props {
-  title: string;
-  message?: string;
+  readonly title: string;
+  readonly message?: string;
 }
 
 export default function EmptyState({ title, message }: Props) {

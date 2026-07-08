@@ -40,7 +40,7 @@ export const logger = {
     write("warn", message, context),
   error: (message: string, error?: unknown, context?: LogContext) =>
     write("error", message, {
-      ...(context ?? {}),
+      ...context,
       error,
     }),
 };

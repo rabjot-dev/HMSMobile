@@ -12,7 +12,7 @@ declare const ErrorUtils:
 let initialized = false;
 
 export const initializeGlobalErrorHandler = () => {
-  if (initialized || typeof ErrorUtils === "undefined") {
+  if (initialized || ErrorUtils === undefined) {
     return;
   }
 

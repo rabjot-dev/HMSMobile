@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  ListRenderItem,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -19,6 +20,11 @@ import CardSkeleton from "../../src/components/loaders/CardSkeleton";
 import OfflineBanner from "../../src/components/common/OfflineBanner";
 import OfflineSkeletonState from "../../src/components/loaders/OfflineSkeletonState";
 import useOfflineStatus from "../../src/hooks/useOfflineStatus";
+
+type AppointmentListItem = {
+  _id: string;
+  [key: string]: any;
+};
 
 export default function Appointments() {
   const navigation = useNavigation<any>();
@@ -87,9 +93,9 @@ export default function Appointments() {
     () => appointments?.data ?? [],
     [appointments],
   );
-  const keyExtractor = useCallback((item: any) => item._id, []);
-  const renderAppointment = useCallback(
-    ({ item }: { item: any }) => (
+  const keyExtractor = useCallback((appointment: AppointmentListItem) => appointment._id, []);
+  const renderAppointment = useCallback<ListRenderItem<AppointmentListItem>>(
+    ({ item }) => (
       <AppointmentCard
         item={item}
         onPress={() =>
@@ -192,11 +198,11 @@ export default function Appointments() {
           </>
         }
         ListEmptyComponent={
-          !loading ? (
+          loading ? null : (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyTitle}>📅 No Appointments</Text>
             </View>
-          ) : null
+          )
         }
         renderItem={renderAppointment}
         ListFooterComponent={

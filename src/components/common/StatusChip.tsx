@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 interface Props {
-  status: string;
+  readonly status: string;
 }
 
 const COLORS: Record<

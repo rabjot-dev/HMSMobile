@@ -8,9 +8,9 @@ export type HealthRecordTab =
   | "DOCUMENTS";
 
 interface Props {
-  activeTab: HealthRecordTab;
+  readonly activeTab: HealthRecordTab;
 
-  onChange: (tab: HealthRecordTab) => void;
+  readonly onChange: (tab: HealthRecordTab) => void;
 }
 
 export default function HealthRecordTabs({ activeTab, onChange }: Props) {

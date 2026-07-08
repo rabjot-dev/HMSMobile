@@ -24,7 +24,7 @@ export default function useHealthRecords() {
   const query = useQuery({
     queryKey: healthRecordQueryKey,
     queryFn: async () => {
-      const response = await getMyHealthRecord("", "", "", undefined);
+      const response = await getMyHealthRecord("", "", "");
 
       return response.data.data as HealthRecordDetails;
     },
@@ -50,7 +50,6 @@ export default function useHealthRecords() {
           timelineCursor,
           labCursor,
           documentCursor,
-          undefined,
         );
         const nextHealthRecord = response.data.data as HealthRecordDetails;
 

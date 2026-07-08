@@ -42,11 +42,11 @@ export default function useAppointments(search = "", status = "ALL") {
         return true;
       }),
     );
-    const lastPage = query.data.pages[query.data.pages.length - 1];
+    const lastPage = query.data.pages.at(-1);
 
     return {
       data,
-      meta: lastPage.meta,
+      meta: lastPage?.meta ?? emptyMeta,
     };
   }, [query.data]);
 
