@@ -474,12 +474,12 @@ export default function HealthRecordScreen() {
       }
       ListHeaderComponent={listHeader}
       ListEmptyComponent={
-        !loading ? (
+        loading ? null : (
           <EmptyState
             title={emptyTitle}
             message="New items will appear here as your care team updates your record."
           />
-        ) : null
+        )
       }
       renderItem={renderHealthRecordItem}
       ListFooterComponent={listFooter}
