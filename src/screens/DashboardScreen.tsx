@@ -133,7 +133,11 @@ export default function Dashboard() {
       (appointment.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
     );
 
-    if (diff <= 0) {
+    if (diff < 0) {
+      return "Past appointment";
+    }
+
+    if (diff === 0) {
       return "Today";
     }
 
