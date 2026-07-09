@@ -20,6 +20,36 @@ import QuickActionCard from "../../src/components/cards/QuickActionCard";
 import useOfflineStatus from "../../src/hooks/useOfflineStatus";
 import { logger } from "../../src/utils/logger";
 
+type DashboardPatient = {
+  _id?: string;
+  id?: string;
+  firstName?: string;
+  lastName?: string;
+  patientCode?: string;
+  patientId?: string;
+};
+
+type PatientDashboard = {
+  patient?: DashboardPatient;
+  appointmentSummary?: {
+    pending?: number;
+    booked?: number;
+    completed?: number;
+    cancelled?: number;
+  };
+  upcomingAppointment?: {
+    _id?: string;
+    appointmentDate?: string;
+    timeSlot?: string;
+    doctorEmployeeId?: {
+      name?: string;
+    };
+  };
+};
+
+const getPatientDisplayId = (patient?: DashboardPatient) =>
+  patient?.patientId || patient?.patientCode || patient?.id || patient?._id;
+
 export default function Dashboard() {
   const navigation = useNavigation<any>();
   const offline = useOfflineStatus();
@@ -33,7 +63,7 @@ export default function Dashboard() {
     queryFn: async () => {
       const response = await getDashboard();
 
-      return response.data.data;
+      return response.data.data as PatientDashboard;
     },
   });
 
@@ -89,13 +119,15 @@ export default function Dashboard() {
   }, []);
 
   const appointmentText = useMemo(() => {
-    if (!dashboard?.upcomingAppointment) {
+    const appointmentDate = dashboard?.upcomingAppointment?.appointmentDate;
+
+    if (!appointmentDate) {
       return "Upcoming Consultation";
     }
 
     const today = new Date();
 
-    const appointment = new Date(dashboard.upcomingAppointment.appointmentDate);
+    const appointment = new Date(appointmentDate);
 
     const diff = Math.ceil(
       (appointment.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
@@ -111,6 +143,11 @@ export default function Dashboard() {
 
     return `In ${diff} days`;
   }, [dashboard]);
+  const patientDisplayId = useMemo(
+    () => getPatientDisplayId(dashboard?.patient),
+    [dashboard?.patient],
+  );
+
   if ((isPending || offline) && !dashboard) {
     return (
       <SafeAreaView style={styles.container}>
@@ -141,7 +178,7 @@ export default function Dashboard() {
 
           <View style={styles.patientBadge}>
             <Text style={styles.badgeText}>
-              ID: {dashboard?.patient?.patientId}
+              ID: {patientDisplayId || "Not available"}
             </Text>
           </View>
         </View>
