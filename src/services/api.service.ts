@@ -135,7 +135,10 @@ api.interceptors.response.use(
 
     if (!error.response) {
       setOfflineStatus(true);
-      logger.warn("Network request failed while offline", {
+      logger.warn("Network request failed before receiving a response", {
+        baseURL: API_BASE_URL,
+        errorCode: error.code,
+        errorMessage: error.message,
         method: originalRequest?.method,
         url: originalRequest?.url,
       });
