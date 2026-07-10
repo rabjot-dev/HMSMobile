@@ -16,6 +16,7 @@ import {
 } from "../../src/utils/validators";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation } from "@react-navigation/native";
+import { useQueryClient } from "@tanstack/react-query";
 import { getProfile, updateProfile } from "../../src/services/patient.service";
 import { SafeAreaView } from "react-native-safe-area-context";
 import GlassCard from "../../src/components/cards/GlassCard";
@@ -26,6 +27,7 @@ import { showToast } from "../services/toast.service";
 
 export default function EditProfile() {
   const navigation = useNavigation<any>();
+  const queryClient = useQueryClient();
 
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -187,7 +189,7 @@ export default function EditProfile() {
 
     setLoading(true);
     try {
-      await updateProfile({
+      const response = await updateProfile({
         dateOfBirth,
         gender,
         bloodGroup,
@@ -211,6 +213,14 @@ export default function EditProfile() {
           ? pastSurgeries.split(",").map((s) => s.trim())
           : [],
       });
+      const updatedProfile = response.data.data;
+
+      queryClient.setQueryData(["profile", "patient"], updatedProfile);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["profile", "patient"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard", "patient"] }),
+        queryClient.invalidateQueries({ queryKey: ["health-record", "me"] }),
+      ]);
 
       showToast("Profile updated successfully", "success");
       navigation.goBack();

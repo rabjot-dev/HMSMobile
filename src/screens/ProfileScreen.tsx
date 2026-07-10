@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useCallback } from "react";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
 import { getProfile } from "../services/patient.service";
 import { logout } from "../services/auth.service";
@@ -71,6 +71,14 @@ export default function ProfileScreen() {
       showToast("Unable to load profile.", "error");
     });
   }, [refetch]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch().catch((error) => {
+        logger.error("Profile focus refresh failed", error);
+      });
+    }, [refetch]),
+  );
 
   const handleLogout = async () => {
     const confirmed = await confirmAction({
