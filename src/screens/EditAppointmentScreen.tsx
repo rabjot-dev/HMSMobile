@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import GlassCard from "../../src/components/cards/GlassCard";
 import PrimaryButton from "../../src/components/buttons/PrimaryButton";
 import TimeSlotSelector from "../../src/components/selectors/TimeSlotSelectors";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { minLength } from "../../src/utils/validators";
@@ -21,7 +21,11 @@ import {
   updateMyAppointment,
   clearAppointmentCache,
 } from "../../src/services/appointment.service";
-import { formatLocalDate } from "../../src/utils/date";
+import {
+  filterFutureSlotsForDate,
+  formatLocalDate,
+  isPastSlotForDate,
+} from "../../src/utils/date";
 import { showToast } from "../services/toast.service";
 
 export default function EditAppointment() {
@@ -75,7 +79,10 @@ export default function EditAppointment() {
     enabled: false,
   });
 
-  const slots = slotsQuery.data ?? [];
+  const slots = useMemo(
+    () => filterFutureSlotsForDate(slotsQuery.data ?? [], appointmentDate),
+    [appointmentDate, slotsQuery.data],
+  );
 
   const loadSlots = async () => {
     try {
@@ -99,6 +106,8 @@ export default function EditAppointment() {
 
     if (!appointmentTime) {
       newErrors.appointmentTime = "Please select a slot";
+    } else if (isPastSlotForDate(appointmentTime, appointmentDate)) {
+      newErrors.appointmentTime = "Please select a future slot";
     }
 
     if (symptoms && !minLength(symptoms.trim(), 5)) {
