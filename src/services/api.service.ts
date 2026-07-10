@@ -10,7 +10,7 @@ import { resetToLogin } from "../navigation/RootNavigation";
 import { clearServiceCaches } from "./cache.service";
 import { queryClient } from "./query-client";
 import { showToast } from "./toast.service";
-import { setOfflineStatus } from "./offline-status.service";
+import { isOffline, setOfflineStatus } from "./offline-status.service";
 import { logger } from "../utils/logger";
 import {
   cacheGetResponse,
@@ -35,6 +35,25 @@ const api = create({
 
 let isRefreshing = false;
 let isReplayingOfflineQueue = false;
+
+// A single slow/failed request shouldn't flip the whole app into "offline"
+// mode - that's what caused the banner to flap on transient blips. Only
+// declare offline once a couple of requests in a row fail to get a response.
+const OFFLINE_FAILURE_THRESHOLD = 2;
+let consecutiveNetworkFailures = 0;
+
+const registerNetworkSuccess = () => {
+  consecutiveNetworkFailures = 0;
+  setOfflineStatus(false);
+};
+
+const registerNetworkFailure = () => {
+  consecutiveNetworkFailures += 1;
+
+  if (consecutiveNetworkFailures >= OFFLINE_FAILURE_THRESHOLD) {
+    setOfflineStatus(true);
+  }
+};
 
 let failedQueue: {
   resolve: (token: string) => void;
@@ -132,7 +151,7 @@ api.interceptors.request.use(async (config) => {
 
 api.interceptors.response.use(
   async (response) => {
-    setOfflineStatus(false);
+    registerNetworkSuccess();
 
     await cacheGetResponse(response.config, response.data);
     await refreshCachedDataAfterMutation(response.config);
@@ -149,7 +168,7 @@ api.interceptors.response.use(
     const originalRequest = error.config as RetryAxiosRequestConfig;
 
     if (!error.response) {
-      setOfflineStatus(true);
+      registerNetworkFailure();
       logger.warn("Network request failed before receiving a response", {
         baseURL: API_BASE_URL,
         errorCode: error.code,
@@ -157,10 +176,13 @@ api.interceptors.response.use(
         method: originalRequest?.method,
         url: originalRequest?.url,
       });
-      showToast(
-        "You appear to be offline. Please check your connection.",
-        "error",
-      );
+
+      if (isOffline()) {
+        showToast(
+          "You appear to be offline. Please check your connection.",
+          "error",
+        );
+      }
 
       const cached = await getCachedResponse(originalRequest);
 
