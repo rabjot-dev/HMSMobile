@@ -212,7 +212,7 @@ export default function CreatePasswordScreen() {
           <Text style={styles.title}>First Time Login</Text>
 
           <Text style={styles.subtitle}>
-            Your temporary credential must be changed before continuing.
+            Your temporary password must be changed before continuing.
           </Text>
 
           <AppInput

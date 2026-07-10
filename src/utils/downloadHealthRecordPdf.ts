@@ -15,6 +15,9 @@ const formatDate = (value?: string) =>
 const isPrintableImage = (url?: string | null) =>
   Boolean(url && /\.(png|jpe?g|gif|webp)$/i.test(url.split("?")[0]));
 
+const isPrintablePdf = (url?: string | null) =>
+  Boolean(url && /\.pdf$/i.test(url.split("?")[0]));
+
 const renderUploadedFile = (title: string, documentUrl?: string) => {
   const fileUrl = getFileUrl(documentUrl);
 
@@ -22,16 +25,27 @@ const renderUploadedFile = (title: string, documentUrl?: string) => {
     return `<p class="muted">No uploaded file attached.</p>`;
   }
 
+  if (isPrintableImage(fileUrl)) {
+    return `
+      <div class="file-page">
+        <img class="file-preview" src="${fileUrl}" alt="${escapeHtml(title)}" />
+      </div>
+    `;
+  }
+
+  if (isPrintablePdf(fileUrl)) {
+    return `
+      <div class="file-page">
+        <iframe class="file-frame" src="${fileUrl}#toolbar=0&navpanes=0" title="${escapeHtml(title)}"></iframe>
+        <object class="file-frame" data="${fileUrl}" type="application/pdf">
+          <p class="muted">PDF preview could not be embedded by this device print engine.</p>
+        </object>
+      </div>
+    `;
+  }
+
   return `
-    <p>
-      <strong>Uploaded File:</strong>
-      <a href="${fileUrl}">${escapeHtml(fileUrl)}</a>
-    </p>
-    ${
-      isPrintableImage(fileUrl)
-        ? `<img class="file-preview" src="${fileUrl}" alt="${escapeHtml(title)}" />`
-        : ""
-    }
+    <p class="muted">This uploaded file type cannot be embedded in the PDF.</p>
   `;
 };
 
@@ -85,8 +99,9 @@ export const downloadHealthRecordPdf = async (record: HealthRecordDetails) => {
           table { width: 100%; border-collapse: collapse; margin-top: 8px; }
           th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; font-size: 12px; }
           th { background: #f8fafc; }
-          a { color: #2563eb; word-break: break-all; }
           .file-preview { max-width: 100%; max-height: 420px; margin-top: 10px; border: 1px solid #e2e8f0; border-radius: 6px; }
+          .file-frame { width: 100%; height: 720px; margin-top: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff; }
+          .file-page { break-before: page; margin-top: 12px; }
           .card { break-inside: avoid; }
         </style>
       </head>
@@ -123,7 +138,6 @@ export const downloadHealthRecordPdf = async (record: HealthRecordDetails) => {
               .map(
                 (item) => `
                 <div class="card">
-                  <strong>${escapeHtml(item.title)}</strong>
                   <p>${escapeHtml(item.reportType)} - ${formatDate(item.reportDate)}</p>
                   <p>Lab: ${escapeHtml(item.labName)}</p>
                   <p>Doctor: ${escapeHtml(item.doctorName)}</p>
@@ -141,7 +155,6 @@ export const downloadHealthRecordPdf = async (record: HealthRecordDetails) => {
               .map(
                 (item) => `
                 <div class="card">
-                  <strong>${escapeHtml(item.title)}</strong>
                   <p>${escapeHtml(item.documentType)} - ${formatDate(item.recordDate)}</p>
                   <p>Hospital: ${escapeHtml(item.hospitalName)}</p>
                   <p>Doctor: ${escapeHtml(item.doctorName)}</p>

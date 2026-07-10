@@ -12,7 +12,7 @@ import {
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import AppointmentCard from "../../src/components/cards/AppointmentCard";
 import useAppointments from "../../src/hooks/useAppointments";
 import CardSkeleton from "../../src/components/loaders/CardSkeleton";
@@ -38,6 +38,12 @@ export default function Appointments() {
     loadAppointments,
     refresh,
   } = useAppointments(debouncedSearch, selectedFilter);
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh]),
+  );
 
   const filters = useMemo(
     () => ["ALL", "PENDING", "BOOKED", "COMPLETED", "REJECTED", "CANCELLED"],

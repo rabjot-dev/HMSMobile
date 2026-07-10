@@ -22,7 +22,11 @@ import {
   bookAppointment,
   clearAppointmentCache,
 } from "../../src/services/appointment.service";
-import { formatLocalDate } from "../../src/utils/date";
+import {
+  filterFutureSlotsForDate,
+  formatLocalDate,
+  isPastSlotForDate,
+} from "../../src/utils/date";
 import { showToast } from "../services/toast.service";
 import { logger } from "../utils/logger";
 
@@ -67,7 +71,10 @@ export default function BookAppointment() {
     enabled: false,
   });
 
-  const slots = slotsQuery.data ?? [];
+  const slots = useMemo(
+    () => filterFutureSlotsForDate(slotsQuery.data ?? [], appointmentDate),
+    [appointmentDate, slotsQuery.data],
+  );
 
   const departments = useMemo(
     () => [...new Set(doctors.map((doctor) => doctor.department))],
@@ -117,6 +124,8 @@ export default function BookAppointment() {
 
     if (!appointmentTime) {
       newErrors.appointmentTime = "Please select time slot";
+    } else if (isPastSlotForDate(appointmentTime, appointmentDate)) {
+      newErrors.appointmentTime = "Please select a future time slot";
     }
 
     if (symptoms && !minLength(symptoms.trim(), 5)) {

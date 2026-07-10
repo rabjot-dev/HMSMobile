@@ -1,22 +1,11 @@
 import api from "./api.service";
-import { registerCacheClear } from "./cache.service";
-
-let appointmentCache: Record<string, any> = {};
 
 export const getAppointments = async (
   cursor = "",
   search = "",
   status = "ALL",
 ) => {
-  const key = `${cursor}-${search}-${status}`;
-
-  if (appointmentCache[key]) {
-    return {
-      data: appointmentCache[key],
-    };
-  }
-
-  const response = await api.get("/appointments/my", {
+  return api.get("/appointments/my", {
     params: {
       pagination: "cursor",
       cursor,
@@ -25,16 +14,10 @@ export const getAppointments = async (
       status,
     },
   });
-
-  appointmentCache[key] = response.data;
-
-  return response;
 };
 export const clearAppointmentCache = () => {
-  appointmentCache = {};
+  return undefined;
 };
-
-registerCacheClear(clearAppointmentCache);
 
 export const getAppointmentById = (id: string) =>
   api.get(`/appointments/my/${id}`);

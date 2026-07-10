@@ -55,6 +55,14 @@ const getTime = (value?: string) => {
   return Number.isNaN(timestamp) ? 0 : timestamp;
 };
 
+const getRecordFileName = (title: string, url: string) => {
+  const urlWithoutQuery = url.split("?")[0];
+  const extension = urlWithoutQuery.match(/\.([a-z0-9]+)$/i)?.[1] ?? "pdf";
+  const hasExtension = new RegExp(`\\.${extension}$`, "i").test(title);
+
+  return hasExtension ? title : `${title}.${extension}`;
+};
+
 export default function HealthRecordScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -167,7 +175,7 @@ export default function HealthRecordScreen() {
       return;
     }
 
-    await openPdf(url, `${report.title}.pdf`);
+    await openPdf(url, getRecordFileName(report.title, url));
   }, []);
   const handleDownloadReport = useCallback(async (report: LabReport) => {
     const url = getFileUrl(report.documentUrl);
@@ -176,7 +184,7 @@ export default function HealthRecordScreen() {
       return;
     }
 
-    await downloadFile(url, `${report.title}.pdf`);
+    await downloadFile(url, getRecordFileName(report.title, url));
   }, []);
   const handleViewDocument = useCallback(async (document: MedicalDocument) => {
     const url = getFileUrl(document.documentUrl);
@@ -185,7 +193,7 @@ export default function HealthRecordScreen() {
       return;
     }
 
-    await openPdf(url, `${document.title}.pdf`);
+    await openPdf(url, getRecordFileName(document.title, url));
   }, []);
   const handleDownloadDocument = useCallback(
     async (document: MedicalDocument) => {
@@ -195,7 +203,7 @@ export default function HealthRecordScreen() {
         return;
       }
 
-      await downloadFile(url, `${document.title}.pdf`);
+      await downloadFile(url, getRecordFileName(document.title, url));
     },
     [],
   );
@@ -474,12 +482,12 @@ export default function HealthRecordScreen() {
       }
       ListHeaderComponent={listHeader}
       ListEmptyComponent={
-        !loading ? (
+        loading ? null : (
           <EmptyState
             title={emptyTitle}
             message="New items will appear here as your care team updates your record."
           />
-        ) : null
+        )
       }
       renderItem={renderHealthRecordItem}
       ListFooterComponent={listFooter}

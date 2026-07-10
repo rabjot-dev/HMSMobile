@@ -104,6 +104,20 @@ const replayOfflineQueue = async () => {
   }
 };
 
+const refreshCachedDataAfterMutation = async (config?: AxiosRequestConfig) => {
+  if (
+    !config ||
+    !isMutationMethod(config.method) ||
+    isAuthUrl(config.url)
+  ) {
+    return;
+  }
+
+  await queryClient.invalidateQueries({
+    refetchType: "all",
+  });
+};
+
 api.interceptors.request.use(async (config) => {
   const token = await getToken();
 
@@ -121,6 +135,7 @@ api.interceptors.response.use(
     setOfflineStatus(false);
 
     await cacheGetResponse(response.config, response.data);
+    await refreshCachedDataAfterMutation(response.config);
 
     if (!isReplayingOfflineQueue) {
       replayOfflineQueue().catch((replayError) => {
@@ -135,7 +150,10 @@ api.interceptors.response.use(
 
     if (!error.response) {
       setOfflineStatus(true);
-      logger.warn("Network request failed while offline", {
+      logger.warn("Network request failed before receiving a response", {
+        baseURL: API_BASE_URL,
+        errorCode: error.code,
+        errorMessage: error.message,
         method: originalRequest?.method,
         url: originalRequest?.url,
       });

@@ -26,8 +26,8 @@ type CredentialMessageKey =
 
 const credentialMessage = (key: CredentialMessageKey) =>
   ({
-    required: "Credential is required",
-    minLength: "Credential must be at least 8 characters",
+    required: "Password is required",
+    minLength: "Password must be at least 8 characters",
   })[key];
 
 export default function Login() {
